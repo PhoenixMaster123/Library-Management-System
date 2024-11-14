@@ -1,16 +1,11 @@
-package app.application.services;
+package app.persistence.adapter;
 
-import app.domain.repository.CustomerRepository;
-import app.persistence.entity.Customer;
-import app.persistence.entity.Transaction;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CustomerServiceImpl {
 
-    private final CustomerRepository customerRepository;
+   /* private final CustomerRepository customerRepository;
 
     public CustomerServiceImpl(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
@@ -26,5 +21,5 @@ public class CustomerServiceImpl {
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         return customerRepository.findTransactionsByCustomerId(customerId);
-    }
+    }*/
 }

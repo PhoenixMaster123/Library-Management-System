@@ -1,25 +1,16 @@
-package app.application.services;
+package app.persistence.adapter;
 
-import app.domain.repository.BookRepository;
-import app.domain.repository.CustomerRepository;
-import app.domain.repository.TransactionRepository;
-import app.persistence.entity.Book;
-import app.persistence.entity.Transaction;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.logging.Logger;
 
 @Service
 public class TransactionServiceImpl {
 
-    private final TransactionRepository transactionRepository;
-    private final BookRepository bookRepository;
+/*private final TransactionRepository transactionRepository;
+    private final Book bookRepository;
     private final CustomerRepository customerRepository;
     private static final Logger LOGGER = Logger.getLogger(TransactionServiceImpl.class.getName());
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, BookRepository bookRepository, CustomerRepository customerRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, Book bookRepository, CustomerRepository customerRepository) {
         this.transactionRepository = transactionRepository;
         this.bookRepository = bookRepository;
         this.customerRepository = customerRepository;
@@ -31,7 +22,7 @@ public class TransactionServiceImpl {
             throw new RuntimeException("Borrowing not allowed");
         }
 
-        Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
+        app.persistence.entity.Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
         book.setAvailability(false);  // Assuming a `setAvailable` method in the Book entity
         bookRepository.save(book);
 
@@ -50,11 +41,11 @@ public class TransactionServiceImpl {
         Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new RuntimeException("Transaction not found"));
         transaction.setReturnDate(LocalDate.now());
 
-        Book book = transaction.getBook();
+        app.persistence.entity.Book book = transaction.getBook();
         book.setAvailability(true);  // Assuming a `setAvailable` method in the Book entity
         bookRepository.save(book);
 
         LOGGER.info("Book returned for transaction " + transactionId);
         return transactionRepository.save(transaction);
-    }
+    }*/
 }

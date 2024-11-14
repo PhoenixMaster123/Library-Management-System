@@ -1,7 +1,8 @@
 package app.persistence.adapter;
 
+import app.domain.models.Book;
+import app.domain.models.Customer;
 import app.domain.repository.DatabaseConnection;
-import app.persistence.entity.Book;
 import app.persistence.entity.Transaction;
 
 import java.time.LocalDate;
@@ -11,48 +12,69 @@ import java.util.List;
 
 public class DBConnector implements DatabaseConnection {
     @Override
-    public boolean existsByCustomerIdAndPrivileges(Integer customerId, boolean privileges) {
-        return false;
+    public void addBook(Book book) {
+
     }
 
     @Override
-    public List<Transaction> findTransactionsByCustomerId(Integer customerId) {
+    public void updateBook(Book book) {
+
+    }
+
+    @Override
+    public void deleteBook(Book book) {
+
+    }
+
+    @Override
+    public void searchBookbyID(Integer id) {
+
+    }
+
+    @Override
+    public void searchBookByTitle(String title) {
+
+    }
+
+    @Override
+    public void searchBookByAuthor(String author) {
+
+    }
+
+    @Override
+    public void isbn(String isbn) {
+
+    }
+
+    @Override
+    public void addTransaction(Transaction transaction) {
+
+    }
+
+    @Override
+    public List<Transaction> getTransactionsforBook(Book book) {
         return List.of();
     }
 
     @Override
-    public List<Transaction> findByCustomerCustomerId(Integer customerId) {
+    public List<Transaction> getTransactionsforCustomer(Customer customer) {
         return List.of();
     }
 
     @Override
-    public List<Transaction> findByBookBookId(Integer bookId) {
+    public void addCustomer(Customer customer) {
+
+    }
+
+    @Override
+    public List<Customer> getCustomer(Integer id) {
         return List.of();
     }
 
     @Override
-    public List<Transaction> findByCustomerCustomerIdAndReturnDateIsNull(Integer customerId) {
-        return List.of();
+    public void addPrivaliges(Customer customer) {
+
     }
 
-    @Override
-    public List<Transaction> findByDueDateBeforeAndReturnDateIsNull(LocalDate currentDate) {
-        return List.of();
-    }
-
-    @Override
-    public List<Book> findAllByMultipleCriteria(String title, String authorName, String isbn) {
-        return List.of();
-    }
-
-    @Override
-    public boolean existsByBookIdAndAvailability(Integer bookId, boolean available) {
-        return false;
-    }
-
-    @Override
-    public Book save(Book book) {
-        return null;
-    }
     // Alle Datenbank Connections
 }

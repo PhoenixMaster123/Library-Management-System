@@ -15,7 +15,5 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
             """)
     List<Book> findAllByMultipleCriteria(String title, String authorName, String isbn);
 
-    // TODO: Make it compliant to JPA method naming convention
-    boolean isAvailable(Integer bookId);
     boolean existsByBookIdAndAvailability(Integer bookId, boolean available);
 }

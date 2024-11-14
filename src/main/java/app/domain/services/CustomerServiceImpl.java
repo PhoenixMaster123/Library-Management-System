@@ -25,6 +25,6 @@ public class CustomerServiceImpl {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        return customerRepository.findBorrowingHistory(customerId);
+        return customerRepository.findTransactionsByCustomerId(customerId);
     }
 }

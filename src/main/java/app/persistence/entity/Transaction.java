@@ -26,5 +26,4 @@ public class Transaction {
 
     @ManyToOne
     private Book book;
-
 }

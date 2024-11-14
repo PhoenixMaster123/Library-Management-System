@@ -1,8 +1,12 @@
 package app.domain.models;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
-//
+@Getter
+@Setter
 public class Author {
     private Integer authorId;
     private String name;
@@ -14,35 +18,6 @@ public class Author {
         this.name = name;
         this.bio = bio;
     }
-
-    public Integer getAuthorId() {
-        return authorId;
-    }
-
-    public void setAuthorId(Integer authorId) {
-        this.authorId = authorId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public Set<Book> getBooks() {
-        return books;
-    }
-
     public void addBook(Book book) {
         books.add(book);
     }

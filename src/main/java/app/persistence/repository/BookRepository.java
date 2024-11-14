@@ -17,4 +17,5 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 
     // TODO: Make it compliant to JPA method naming convention
     boolean isAvailable(Integer bookId);
+    boolean existsByBookIdAndAvailability(Integer bookId, boolean available);
 }

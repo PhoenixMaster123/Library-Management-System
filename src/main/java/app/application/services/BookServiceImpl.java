@@ -1,6 +1,6 @@
-package app.domain.services;
+package app.application.services;
 
-import app.persistence.repository.BookRepository;
+import app.domain.repository.BookRepository;
 import app.persistence.entity.Book;
 import org.springframework.stereotype.Service;
 

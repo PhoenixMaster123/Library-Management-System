@@ -1,4 +1,4 @@
-package app.persistence.repository;
+package app.domain.repository;
 
 import app.persistence.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,9 +12,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
     List<Transaction> findByBookBookId(Integer bookId);
 
-    // TODO: Make it compliant to JPA method naming convention
-    List<Transaction> findActiveTransactionsByCustomerId(Integer customerId);
-
-    // TODO: Make it compliant to JPA method naming convention
-    List<Transaction> findOverdueTransactions(LocalDate currentDate);
+    List<Transaction> findByCustomerCustomerIdAndReturnDateIsNull(Integer customerId);
+    List<Transaction> findByDueDateBeforeAndReturnDateIsNull(LocalDate currentDate);
 }

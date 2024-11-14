@@ -1,4 +1,4 @@
-package app.persistence.repository;
+package app.domain.repository;
 
 import app.persistence.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,6 +1,6 @@
-package app.domain.services;
+package app.application.services;
 
-import app.persistence.repository.CustomerRepository;
+import app.domain.repository.CustomerRepository;
 import app.persistence.entity.Customer;
 import app.persistence.entity.Transaction;
 import org.springframework.stereotype.Service;

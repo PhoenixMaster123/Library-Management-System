@@ -1,1 +1,0 @@
-This is for the models for the api the Atributes the user shouldnt see like priviliges are her hidden

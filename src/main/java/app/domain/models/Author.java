@@ -5,24 +5,19 @@ import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
+
 @Getter
 @Setter
 public class Author {
-    private Integer authorId;
+    private UUID authorId;
     private String name;
     private String bio;
     private final Set<Book> books = new HashSet<>();
 
-    public Author(Integer authorId, String name, String bio) {
-        this.authorId = authorId;
+    public Author(String name, String bio) {
+        this.authorId = UUID.randomUUID();
         this.name = name;
         this.bio = bio;
-    }
-    public void addBook(Book book) {
-        books.add(book);
-    }
-
-    public void removeBook(Book book) {
-        books.remove(book);
     }
 }

@@ -19,15 +19,28 @@ import java.util.UUID;
 public class BookEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "book_id", updatable = false, nullable = false, unique = true)
     private UUID bookId;
+
+    @Column(name = "title", nullable = false)
     private String title;
+
+    @Column(name = "isbn", nullable = false)
     private String isbn;
+
+    @Column(name = "publication_year", nullable = false)
     private int publicationYear;
+
+    @Column(name = "availability", nullable = false)
     private boolean availability;
+    @Column(name = "created_at", nullable = false)
     private LocalDate created_at;
-    @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
+
+
+    @ManyToMany(mappedBy = "books", cascade = CascadeType.PERSIST)
     private Set<AuthorEntity> authors;
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TransactionEntity> transactions = new ArrayList<>();
 
     public BookEntity() {

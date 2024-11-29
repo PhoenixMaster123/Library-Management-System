@@ -40,6 +40,9 @@ public class Transaction {
         this.customer = customer;
         this.book = book;
     }
+    public Transaction() {
+
+    }
     public boolean isOverdue() {
         return returnDate == null && LocalDate.now().isAfter(dueDate);
     }

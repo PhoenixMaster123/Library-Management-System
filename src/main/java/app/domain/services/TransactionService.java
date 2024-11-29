@@ -85,7 +85,7 @@ public class TransactionService {
 
             // Update book availability
             book.setAvailable(false);
-            bookDao.updateBook(book);
+            bookDao.updateBook(bookId, book);
         });
     }
     public List<Transaction> viewBorrowingHistory(UUID customerId) {

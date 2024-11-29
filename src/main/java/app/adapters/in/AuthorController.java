@@ -31,17 +31,15 @@ public class AuthorController {
         return ResponseEntity.ok(author);
     }
 
-    // TODO: Is it correct?
     @PutMapping("/{id}")
     public ResponseEntity<String> updateAuthor(@PathVariable UUID id, @RequestBody Author author) {
-        // Set the ID explicitly to avoid mismatches
-        author.setAuthorId(id);
 
+        author.setAuthorId(id);
         authorService.updateAuthor(author);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author updated successfully!");
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deleteAuthorById/{id}")
     public ResponseEntity<String> deleteAuthor(@PathVariable UUID id) {
         authorService.deleteAuthor(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author deleted successfully!");

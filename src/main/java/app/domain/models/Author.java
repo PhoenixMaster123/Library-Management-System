@@ -20,4 +20,8 @@ public class Author {
         this.name = name;
         this.bio = bio;
     }
+
+    public Author() {
+
+    }
 }

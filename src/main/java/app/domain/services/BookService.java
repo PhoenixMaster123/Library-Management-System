@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -19,21 +20,18 @@ public class BookService {
         this.bookDao = bookDao;
     }
     public Book createNewBook(CreateNewBook bookToCreate) {
+
         Book book = new Book(bookToCreate.getTitle(), bookToCreate.getIsbn(), bookToCreate.getPublicationYear(), true, LocalDate.now());
         bookDao.addBook(book);
         return book;
     }
-    public void updateBook(Book book) {
-        bookDao.updateBook(book);
+    public void updateBook(UUID bookID, Book book) {
+        bookDao.updateBook(bookID, book);
     }
 
-    public void deleteBook(Book book) {
-        bookDao.deleteBook(book);
+    public void deleteBook(UUID bookId) {
+        bookDao.deleteBook(bookId);
     }
-    public void deleteBookByTitle(String title) {
-        bookDao.deleteBookByTitle(title);
-    }
-
     public Optional<Book> searchBookByTitle(String title) {
         return bookDao.searchBookByTitle(title);
     }
@@ -44,5 +42,8 @@ public class BookService {
 
     public Optional<Book> searchByIsbn(String isbn) {
         return bookDao.searchByIsbn(isbn);
+    }
+    public Optional<Book> searchById(UUID id) {
+        return bookDao.searchBookById(id);
     }
 }

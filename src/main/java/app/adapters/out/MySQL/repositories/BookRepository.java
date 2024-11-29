@@ -18,19 +18,10 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID> {
     @Query("SELECT b FROM BookEntity b WHERE b.title = :title")
     Optional<BookEntity> findBookByTitle(@Param("title") String title);
 
-    /*@Query("SELECT b FROM BookEntity b JOIN b.authors a WHERE a.name = :authorName")
-    List<BookEntity> findBooksByAuthorName(@Param("authorName") String authorName);
-     */
-
     @Query("SELECT b FROM BookEntity b JOIN b.authors a WHERE a.name = :author AND b.availability = :isAvailable")
     List<BookEntity> findBooksByAuthor(@Param("author") String author, @Param("isAvailable") boolean isAvailable);
 
     @Query("SELECT b FROM BookEntity b WHERE b.isbn = :isbn")
     Optional<BookEntity> findBooksByIsbn(@Param("isbn") String isbn);
-
-    @Modifying
-    @Query("UPDATE BookEntity b SET b.availability = :#{#book.availability} WHERE b.bookId = :#{#book.bookId}")
-    int updateBook(@Param("book") BookEntity book);
-
-    void deleteByTitle(String title);
+    Optional<BookEntity> findBookByBookId(@Param("id") UUID id);
 }

@@ -1,14 +1,15 @@
 package app.adapters.out.MySQL;
 
+import app.adapters.out.MySQL.entity.AuthorEntity;
 import app.adapters.out.MySQL.entity.BookEntity;
 import app.adapters.out.MySQL.repositories.BookRepository;
 import app.domain.port.BookDao;
 import app.domain.models.Book;
+import app.infrastructure.exceptions.BookNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class BookDaoAdapter implements BookDao {
@@ -20,20 +21,25 @@ public class BookDaoAdapter implements BookDao {
 
     @Override
     public void addBook(Book book) {
+        Set<AuthorEntity> authorEntities = book.getAuthors().stream()
+                .map(author -> new AuthorEntity(author.getAuthorId(), author.getName(), author.getBio(), new HashSet<>()))
+                .collect(Collectors.toSet());
+
         BookEntity bookEntity = BookEntity.builder()
-                .bookId(book.getBookId())
+                .bookId(book.getBookId() != null ? book.getBookId() : UUID.randomUUID()) // Safeguard against null
                 .title(book.getTitle())
                 .isbn(book.getIsbn())
                 .publicationYear(book.getPublicationYear())
                 .availability(book.isAvailable())
                 .created_at(book.getCreatedAt())
+                .authors(authorEntities)
                 .build();
         bookRepository.save(bookEntity);
     }
 
     @Override
-    public void updateBook(Book newBook) {
-        bookRepository.findById(newBook.getBookId()).ifPresent(entity -> {
+    public void updateBook(UUID bookID, Book newBook) {
+        bookRepository.findById(bookID).ifPresent(entity -> {
             entity.setTitle(newBook.getTitle());
             entity.setIsbn(newBook.getIsbn());
             entity.setPublicationYear(newBook.getPublicationYear());
@@ -44,33 +50,25 @@ public class BookDaoAdapter implements BookDao {
     }
 
     @Override
-    public void deleteBook(Book book) {
-        Optional<BookEntity> existingBook = bookRepository.findById(book.getBookId());
+    public void deleteBook(UUID bookID) {
+        Optional<BookEntity> existingBook = bookRepository.findById(bookID);
         if (existingBook.isPresent()) {
-            bookRepository.deleteById(book.getBookId());
+            bookRepository.deleteById(bookID);
         } else {
-            throw new RuntimeException("Book not found with ID: " + book.getBookId());
-        }
-    }
-    @Override
-    public void deleteBookByTitle(String title) {
-        Optional<BookEntity> existingBook = bookRepository.findBookByTitle(title);
-        if (existingBook.isPresent()) {
-            bookRepository.deleteByTitle(title);
-        } else {
-            throw new RuntimeException("Book not found with Title: " + title);
+            throw new BookNotFoundException("Book not found with ID: " + bookID);
         }
     }
     @Override
     public Optional<Book> searchBookByTitle(String title) {
-        Optional<BookEntity> entity = bookRepository.findBookByTitle(title);
-        return entity.map(e -> new Book(
-                e.getTitle(),
-                e.getIsbn(),
-                e.getPublicationYear(),
-                e.isAvailability(),
-                e.getCreated_at()
-        ));
+        return bookRepository.findBookByTitle(title)
+                .map(bookEntity -> new Book(
+                        bookEntity.getBookId(),
+                        bookEntity.getTitle(),
+                        bookEntity.getIsbn(),
+                        bookEntity.getPublicationYear(),
+                        bookEntity.isAvailability(),
+                        bookEntity.getCreated_at()
+                ));
     }
 
     @Override
@@ -91,6 +89,18 @@ public class BookDaoAdapter implements BookDao {
     public Optional<Book> searchByIsbn(String isbn) {
         Optional<BookEntity> entity = bookRepository.findBooksByIsbn(isbn);
         return entity.map(e -> new Book(
+                e.getTitle(),
+                e.getIsbn(),
+                e.getPublicationYear(),
+                e.isAvailability(),
+                e.getCreated_at()
+        ));
+    }
+
+    @Override
+    public Optional<Book> searchBookById(UUID id) {
+        Optional<BookEntity> bookEntity = bookRepository.findBookByBookId(id);
+        return bookEntity.map(e -> new Book(
                 e.getTitle(),
                 e.getIsbn(),
                 e.getPublicationYear(),

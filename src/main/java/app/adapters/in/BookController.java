@@ -3,6 +3,8 @@ package app.adapters.in;
 import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Book;
 import app.domain.services.BookService;
+import jakarta.validation.constraints.NotNull;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,38 +30,31 @@ public class BookController {
 
         return ResponseEntity.ok(book);
     }
-    @GetMapping("/title/{title}")
+    @GetMapping(value = "/title/{title}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBookByTitle(@PathVariable("title") String title) {
         return ResponseEntity.ok(bookService.searchBookByTitle(title));
     }
-    @GetMapping("/author/{author}")
+    @GetMapping(value = "/author/{author}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBookByAuthor(@PathVariable("author") String author) {
         return ResponseEntity.ok(bookService.searchBookByAuthors(author, true));
     }
-    @GetMapping("/{isbn}")
+    @GetMapping(value = "/{isbn}",produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBookByIsbn(@PathVariable("isbn") String isbn) {
         return ResponseEntity.ok(bookService.searchByIsbn(isbn));
     }
-    // TODO: It is not working: (I don't know how to test it)
-    @PutMapping("/updateBook")
-    public ResponseEntity<String> updateBook(@RequestBody Book book){
-        Optional<Book> existingBook = bookService.searchByIsbn(book.getIsbn());
+    @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<String> updateBook(@NotNull @PathVariable("id") UUID id, @NotNull @RequestBody Book book) {
+        Optional<Book> existingBook = bookService.searchById(id);
         if (existingBook.isEmpty()) {
             return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
         }
-        bookService.updateBook(book);
-        return new ResponseEntity<>("Book updated", HttpStatus.OK);
+        book.setBookId(id);
+        bookService.updateBook(id, book);
+        return new ResponseEntity<>("Book updated successfully", HttpStatus.OK);
     }
-    // TODO: It is not working: (I don't know how to test it)
-    @DeleteMapping("/deleteBook")
-    public ResponseEntity<String> deleteBook(@RequestParam("book") Book book){
-        bookService.deleteBook(book);
-        return new ResponseEntity<>("book successfully deleted!!",HttpStatus.OK);
-    }
-
-    @DeleteMapping("/deleteBook/{title}")
-    public ResponseEntity<String> deleteBook(@PathVariable("title") String title){
-        bookService.deleteBookByTitle(title);
-        return new ResponseEntity<>("book successfully deleted!!",HttpStatus.OK);
+    @DeleteMapping("/deleteBookById/{id}")
+    public ResponseEntity<String> deleteBook(@NotNull @PathVariable("id") UUID bookID) {
+        bookService.deleteBook(bookID);
+        return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
     }
 }

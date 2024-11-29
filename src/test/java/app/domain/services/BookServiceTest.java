@@ -1,6 +1,8 @@
 package app.domain.services;
 
 import app.adapters.in.dto.CreateNewBook;
+import app.adapters.out.MySQL.entity.BookEntity;
+import app.adapters.out.MySQL.repositories.BookRepository;
 import app.domain.models.Book;
 import app.domain.port.BookDao;
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +27,7 @@ class BookServiceTest {
 
     @InjectMocks
     private BookService bookService;
+    private BookRepository bookRepository;
     private AutoCloseable closeable;
 
     @BeforeEach
@@ -64,7 +69,11 @@ class BookServiceTest {
     }
 
     @Test
-    void deleteBook() {
+    public void testDeleteById() {
+        UUID bookId = UUID.fromString("your-book-id-here");
+        bookRepository.deleteById(bookId);
+        Optional<BookEntity> bookEntity = bookRepository.findById(bookId);
+        assertTrue(bookEntity.isEmpty());
     }
 
     @Test

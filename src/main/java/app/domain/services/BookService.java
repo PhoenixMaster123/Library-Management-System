@@ -20,7 +20,9 @@ public class BookService {
         this.bookDao = bookDao;
     }
     public Book createNewBook(CreateNewBook bookToCreate) {
-
+        if (bookDao.searchBookByTitle(bookToCreate.getTitle()).isPresent()) {
+            throw new IllegalArgumentException("Book with the same title already exists.");
+        }
         Book book = new Book(bookToCreate.getTitle(), bookToCreate.getIsbn(), bookToCreate.getPublicationYear(), true, LocalDate.now());
         bookDao.addBook(book);
         return book;

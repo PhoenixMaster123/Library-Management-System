@@ -19,6 +19,7 @@ public class CustomerService {
     }
 
     public Customer createNewCustomer(CreateNewCustomer createNewCustomer) {
+
         Customer customer = new Customer(UUID.randomUUID(), createNewCustomer.getName(), createNewCustomer.getEmail(), true);
         customerDao.addCustomer(customer);
         return customer;
@@ -27,8 +28,16 @@ public class CustomerService {
     public Optional<Customer> findCustomerById(UUID id) {
         return customerDao.getCustomer(id);
     }
+    public Optional<Customer> findCustomerByName(String customerName) {
+        return customerDao.getCustomerByName(customerName);
+    }
 
-    public void updatePrivileges(Customer customer) {
+    public void updatePrivileges(UUID id, boolean privileges) {
+        // Fetch the customer and update privileges
+        Customer customer = findCustomerById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found with ID: " + id));
+
+        customer.setPrivileges(privileges);
         customerDao.updatePrivileges(customer);
     }
     public void updateCustomer(Customer customer) {

@@ -26,28 +26,38 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
-    @PutMapping("/{id}")
+    @GetMapping(value = "/getCustomerById/{customerId}", produces = "application/single-customer-response+json;version=1")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable UUID customerId) {
+        return customerService.findCustomerById(customerId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @GetMapping(value = "/getCustomerByName/{customerName}", produces = "application/customer-response+json;version=1")
+    public ResponseEntity<Customer> getCustomerByName(@PathVariable String customerName) {
+        return customerService.findCustomerByName(customerName)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @PutMapping(value = "/updateCustomer/{id}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
         customer.setCustomerId(id);
         customerService.updateCustomer(customer);
         return ResponseEntity.status(HttpStatus.OK).body("Customer updated successfully!");
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping(value = "/{id}/privileges", produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<String> updateCustomerPrivileges(@PathVariable UUID id, @RequestBody boolean privileges) {
+        // Update privileges via the service layer
+        customerService.updatePrivileges(id, privileges);
+        return ResponseEntity.ok("Customer privileges updated successfully!");
+    }
+
+
+    @DeleteMapping("/deleteCustomer/{id}")
     public ResponseEntity<String> deleteCustomer(@PathVariable UUID id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.status(HttpStatus.OK).body("Customer successfully deleted!");
-    }
-    @PutMapping("/{id}/privileges")
-    public ResponseEntity<String> updateCustomerPrivileges(@PathVariable UUID id, @RequestBody boolean privileges) {
-        // Fetch the existing customer
-        Customer customer = customerService.findCustomerById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + id));
-
-        // Update the privilege status
-        customer.setPrivileges(privileges);
-        customerService.updatePrivileges(customer);
-
-        return ResponseEntity.ok("Customer privileges updated successfully!");
     }
 }

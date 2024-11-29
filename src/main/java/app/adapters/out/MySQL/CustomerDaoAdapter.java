@@ -32,6 +32,18 @@ public class CustomerDaoAdapter implements CustomerDao {
     public Optional<Customer> getCustomer(UUID id) {
         return customRepository.findById(id)
                 .map(customerEntity -> new Customer(
+                        customerEntity.getCustomerId(),
+                        customerEntity.getName(),
+                        customerEntity.getEmail(),
+                        customerEntity.isPrivileges()
+                ));
+    }
+
+    @Override
+    public Optional<Customer> getCustomerByName(String name) {
+        return customRepository.findByName(name)
+                .map(customerEntity -> new Customer(
+                        customerEntity.getCustomerId(),
                         customerEntity.getName(),
                         customerEntity.getEmail(),
                         customerEntity.isPrivileges()

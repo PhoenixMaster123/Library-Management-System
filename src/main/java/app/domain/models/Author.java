@@ -20,6 +20,11 @@ public class Author {
         this.name = name;
         this.bio = bio;
     }
+    public Author(UUID authorId, String name, String bio) {
+        this.authorId = authorId;
+        this.name = name;
+        this.bio = bio;
+    }
 
     public Author() {
 

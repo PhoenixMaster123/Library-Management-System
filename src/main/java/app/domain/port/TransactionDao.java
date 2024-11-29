@@ -11,10 +11,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TransactionDao {
-    public void addTransaction(Transaction transaction);
+    void addTransaction(Transaction transaction);
 
-    public List<Transaction> getTransactionsForBook(Book book);
-    public List<Transaction> viewBorrowingHistory(Customer customer);
+    List<Transaction> getTransactionsForBook(Book book);
+    List<Transaction> viewBorrowingHistory(Customer customer);
     Optional<Transaction> findById(UUID transactionId);
 
     List<Transaction> findAll();

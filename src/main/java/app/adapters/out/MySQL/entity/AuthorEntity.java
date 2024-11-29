@@ -20,7 +20,11 @@ public class AuthorEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID authorId;
+
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(length = 500)
     private String bio;
 
     @ManyToMany(fetch = FetchType.EAGER)

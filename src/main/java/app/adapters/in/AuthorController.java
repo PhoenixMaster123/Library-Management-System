@@ -1,11 +1,10 @@
 package app.adapters.in;
 
 import app.adapters.in.dto.CreateNewAuthor;
-import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Author;
-import app.domain.models.Book;
 import app.domain.services.AuthorService;
-import app.domain.services.BookService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,23 +23,29 @@ public class AuthorController {
     }
 
     @PostMapping(produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<Author> createNewAuthor(@RequestBody CreateNewAuthor newAuthor) {
+    public ResponseEntity<Author> createNewAuthor(@NotNull @RequestBody CreateNewAuthor newAuthor) {
 
         Author author = authorService.createNewAuthor(newAuthor);
 
         return ResponseEntity.ok(author);
     }
+    @GetMapping(value = "/getAuthorByName/{name}", produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<Author> getAuthorByName(@PathVariable String name) {
+        return authorService.getAuthorByName(name)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<String> updateAuthor(@PathVariable UUID id, @RequestBody Author author) {
+    @PutMapping(value = "/updateAuthor/{authorId}", produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<String> updateAuthor(@NotNull @PathVariable UUID authorId, @Valid @RequestBody Author author) {
 
-        author.setAuthorId(id);
-        authorService.updateAuthor(author);
+        author.setAuthorId(authorId);
+        authorService.updateAuthor(authorId, author);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author updated successfully!");
     }
 
     @DeleteMapping("/deleteAuthorById/{id}")
-    public ResponseEntity<String> deleteAuthor(@PathVariable UUID id) {
+    public ResponseEntity<String> deleteAuthor(@NotNull @PathVariable UUID id) {
         authorService.deleteAuthor(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author deleted successfully!");
     }

@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public interface CustomerDao {
 
-    public void addCustomer(Customer customer);
-    public Optional<Customer> getCustomer(UUID id);
+    void addCustomer(Customer customer);
+    Optional<Customer> getCustomer(UUID id);
     void updatePrivileges(Customer customer);
     void updateCustomer(Customer customer);
 

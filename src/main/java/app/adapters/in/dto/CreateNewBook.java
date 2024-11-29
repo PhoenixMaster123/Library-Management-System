@@ -13,5 +13,4 @@ public class CreateNewBook {
     private String title;
     private String isbn;
     private int publicationYear;
-    private List<String> authorNames;
 }

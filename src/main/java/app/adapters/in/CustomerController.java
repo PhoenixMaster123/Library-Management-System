@@ -49,7 +49,6 @@ public class CustomerController {
 
     @PutMapping(value = "/{id}/privileges", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateCustomerPrivileges(@PathVariable UUID id, @RequestBody boolean privileges) {
-        // Update privileges via the service layer
         customerService.updatePrivileges(id, privileges);
         return ResponseEntity.ok("Customer privileges updated successfully!");
     }

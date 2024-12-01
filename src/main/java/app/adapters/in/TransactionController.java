@@ -1,10 +1,8 @@
 package app.adapters.in;
 
 import app.adapters.in.dto.CreateNewTransaktion;
-import app.adapters.in.dto.TransactionResponse;
 import app.domain.models.Transaction;
 import app.domain.services.TransactionService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +28,7 @@ public class TransactionController {
 
         return ResponseEntity.ok(transaction);
     }
-    @PostMapping("/returnBook")
+    @PostMapping("/returnBook/{bookId}")
     public ResponseEntity<String> returnBook(@RequestParam("bookId") UUID bookId) {
         String transaction_id=transactionService.returnBook(bookId);
         return new ResponseEntity<>(

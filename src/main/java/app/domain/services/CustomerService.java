@@ -4,6 +4,7 @@ import app.domain.port.CustomerDao;
 import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.models.Customer;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -32,6 +33,7 @@ public class CustomerService {
         return customerDao.getCustomerByName(customerName);
     }
 
+    @Transactional
     public void updatePrivileges(UUID id, boolean privileges) {
         // Fetch the customer and update privileges
         Customer customer = findCustomerById(id)

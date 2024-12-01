@@ -24,9 +24,11 @@ public class CustomerDaoAdapter implements CustomerDao {
                 .customerId(customer.getCustomerId())
                 .name(customer.getName())
                 .email(customer.getEmail())
+                .privileges(customer.isPrivileges())
                 .build();
         customRepository.save(customerEntity);
     }
+
 
     @Override
     public Optional<Customer> getCustomer(UUID id) {

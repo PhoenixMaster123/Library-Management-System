@@ -23,14 +23,14 @@ public class AuthorController {
     }
 
     @PostMapping(produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<Author> createNewAuthor(@NotNull @RequestBody CreateNewAuthor newAuthor) {
+    public ResponseEntity<Author> createNewAuthor(@Valid @RequestBody CreateNewAuthor newAuthor) {
 
         Author author = authorService.createNewAuthor(newAuthor);
 
         return ResponseEntity.ok(author);
     }
     @GetMapping(value = "/getAuthorByName/{name}", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<Author> getAuthorByName(@PathVariable String name) {
+    public ResponseEntity<Author> getAuthorByName(@NotNull @PathVariable String name) {
         return authorService.getAuthorByName(name)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());

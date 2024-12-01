@@ -1,5 +1,6 @@
 package app.domain.services;
 
+import app.domain.models.Author;
 import app.domain.port.BookDao;
 import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Book;
@@ -8,22 +9,43 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
 public class BookService {
 
     private final BookDao bookDao;
+    private final AuthorService authorService;
 
-    public BookService(BookDao bookDao) {
+    public BookService(BookDao bookDao, AuthorService authorService) {
         this.bookDao = bookDao;
+        this.authorService = authorService;
     }
+
     public Book createNewBook(CreateNewBook bookToCreate) {
         if (bookDao.searchBookByTitle(bookToCreate.getTitle()).isPresent()) {
             throw new IllegalArgumentException("Book with the same title already exists.");
         }
-        Book book = new Book(bookToCreate.getTitle(), bookToCreate.getIsbn(), bookToCreate.getPublicationYear(), true, LocalDate.now());
+
+        // Resolve authors (fetch existing or create new)
+        Set<Author> authors = bookToCreate.getAuthors().stream()
+                .map(authorDto -> authorService.getAuthorByName(authorDto.getName())
+                        .orElseGet(() -> authorService.createNewAuthor(authorDto)))
+                .collect(Collectors.toSet());
+
+        // Create the book
+        Book book = new Book(
+                bookToCreate.getTitle(),
+                bookToCreate.getIsbn(),
+                bookToCreate.getPublicationYear(),
+                true,
+                LocalDate.now()
+        );
+        book.getAuthors().addAll(authors);
+
         bookDao.addBook(book);
         return book;
     }

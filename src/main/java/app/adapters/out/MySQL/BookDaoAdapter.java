@@ -2,6 +2,7 @@ package app.adapters.out.MySQL;
 
 import app.adapters.out.MySQL.entity.AuthorEntity;
 import app.adapters.out.MySQL.entity.BookEntity;
+import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.adapters.out.MySQL.repositories.BookRepository;
 import app.domain.port.BookDao;
 import app.domain.models.Book;
@@ -14,19 +15,34 @@ import java.util.stream.Collectors;
 @Component
 public class BookDaoAdapter implements BookDao {
     private final BookRepository bookRepository;
+    private final AuthorRepository authorRepository;
 
-    public BookDaoAdapter(BookRepository bookRepository) {
+    public BookDaoAdapter(BookRepository bookRepository, AuthorRepository authorRepository) {
         this.bookRepository = bookRepository;
+        this.authorRepository = authorRepository;
     }
 
     @Override
     public void addBook(Book book) {
+        // Check if authors exist in the DB, or create them
         Set<AuthorEntity> authorEntities = book.getAuthors().stream()
-                .map(author -> new AuthorEntity(author.getAuthorId(), author.getName(), author.getBio(), new HashSet<>()))
+                .map(author -> {
+                    Optional<AuthorEntity> existingAuthor = authorRepository.findByName(author.getName());
+                    return existingAuthor.orElseGet(() -> {
+                        AuthorEntity newAuthorEntity = new AuthorEntity(
+                                UUID.randomUUID(),
+                                author.getName(),
+                                author.getBio(),
+                                new HashSet<>()
+                        );
+                        return authorRepository.save(newAuthorEntity);
+                    });
+                })
                 .collect(Collectors.toSet());
 
+        // Persist the book with associated authors
         BookEntity bookEntity = BookEntity.builder()
-                .bookId(book.getBookId() != null ? book.getBookId() : UUID.randomUUID()) // Safeguard against null
+                .bookId(book.getBookId() != null ? book.getBookId() : UUID.randomUUID())
                 .title(book.getTitle())
                 .isbn(book.getIsbn())
                 .publicationYear(book.getPublicationYear())

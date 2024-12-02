@@ -30,5 +30,4 @@ public class Author {
     public Author() {
 
     }
-    // TODO:When I create new Author and the get this author the id changes + Do not show which books are related to this author
 }

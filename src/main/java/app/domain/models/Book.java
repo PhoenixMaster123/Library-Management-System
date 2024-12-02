@@ -43,9 +43,7 @@ public class Book {
         this.authors = authors;
     }
 
-
     // Default constructor
     public Book() {
     }
-    // TODO:When I create new Book and the get this book the id changes + Do not show which authors are related to this book
 }

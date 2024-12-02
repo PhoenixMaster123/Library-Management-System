@@ -20,8 +20,7 @@ public class CustomerService {
     }
 
     public Customer createNewCustomer(CreateNewCustomer createNewCustomer) {
-
-        Customer customer = new Customer(UUID.randomUUID(), createNewCustomer.getName(), createNewCustomer.getEmail(), true);
+        Customer customer = new Customer(null, createNewCustomer.getName(), createNewCustomer.getEmail(), true);
         customerDao.addCustomer(customer);
         return customer;
     }

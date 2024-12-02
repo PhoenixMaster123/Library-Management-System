@@ -20,16 +20,17 @@ public class Customer {
 
     // Constructor for new customers
     public Customer(String name, String email, boolean privileges) {
-        this(UUID.randomUUID(), name, email, privileges);
+        this(null, name, email, privileges);
     }
 
     // Constructor for existing customers
     public Customer(UUID customerId, String name, String email, boolean privileges) {
-        this.customerId = customerId;
+        this.customerId = customerId; // JPA will handle ID assignment for new customers
         this.name = name;
         this.email = email;
         this.privileges = privileges;
     }
+
     public Customer() {
 
     }

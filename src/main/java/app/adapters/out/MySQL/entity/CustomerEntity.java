@@ -24,7 +24,7 @@ public class CustomerEntity {
     private String email;
     private boolean privileges;
 
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TransactionEntity> transactions = new ArrayList<>();
 
     public CustomerEntity() {

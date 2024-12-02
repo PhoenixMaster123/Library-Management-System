@@ -1,7 +1,9 @@
 package app.adapters.in;
 
 import app.adapters.in.dto.CreateNewTransaktion;
+import app.adapters.in.dto.TransactionResponse;
 import app.domain.models.Transaction;
+import app.domain.services.BookService;
 import app.domain.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,40 +17,50 @@ import java.util.UUID;
 @RequestMapping("/transactions")
 public class TransactionController {
     private final TransactionService transactionService;
+    private final BookService bookService;
 
     @Autowired
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, BookService bookService) {
         this.transactionService = transactionService;
+        this.bookService = bookService;
     }
 
     @PostMapping(produces = "application/single-book-response+json;version=1")
     public ResponseEntity<Transaction> createNewTransaction(@RequestBody CreateNewTransaktion newTransaktion) {
-
-        Transaction transaction = transactionService.createNewTransaction(newTransaktion);
-
-        return ResponseEntity.ok(transaction);
+        try {
+            // Create a new transaction
+            Transaction transaction = transactionService.createNewTransaction(newTransaktion);
+            return ResponseEntity.ok(transaction);
+        } catch (IllegalArgumentException e) {
+            // Handle the case when the book is not available
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
+    // TODO Not Working
     @PostMapping("/returnBook/{bookId}")
-    public ResponseEntity<String> returnBook(@RequestParam("bookId") UUID bookId) {
-        String transaction_id=transactionService.returnBook(bookId);
-        return new ResponseEntity<>(
-                "Your Transaction was Successful here is your Txn id:"+transaction_id, HttpStatus.OK);
+    public ResponseEntity<TransactionResponse> returnBook(@PathVariable UUID bookId) {
+        try {
+            if (bookService.searchById(bookId).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new TransactionResponse("Book not found.", null));
+            }
 
+            String transactionId = transactionService.returnBook(bookId);
+            return ResponseEntity.ok(new TransactionResponse("Transaction successful.", UUID.fromString(transactionId)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new TransactionResponse("Failed to return book: " + e.getMessage(), null));
+        }
     }
-   /* @PostMapping("/returnBook")
-    public ResponseEntity<TransactionResponse> returnBook(@RequestParam UUID bookId) {
-        String transactionId = transactionService.returnBook(bookId);
-        TransactionResponse response = new TransactionResponse();
-        response.setMessage("Transaction successful.");
-        response.setTransactionId(UUID.fromString(transactionId));
 
-        return ResponseEntity.ok(response);
-    }
-    */
-    @PostMapping("/borrowBook")
+    // This Works:
+    @PostMapping("/borrowBook/{customerId}/{bookId}")
     public ResponseEntity<String> borrowBook(
-            @RequestParam UUID customerId,
-            @RequestParam UUID bookId) {
+            @PathVariable UUID customerId,
+            @PathVariable UUID bookId) {
         try {
             transactionService.borrowBook(customerId, bookId);
             return ResponseEntity.ok("Book borrowed successfully.");
@@ -57,6 +69,7 @@ public class TransactionController {
                     .body("Failed to borrow book: " + e.getMessage());
         }
     }
+
     @GetMapping("/history/{customerId}")
     public ResponseEntity<List<Transaction>> viewBorrowingHistory(@PathVariable UUID customerId) {
         List<Transaction> transactions = transactionService.viewBorrowingHistory(customerId);

@@ -3,12 +3,16 @@ package app.adapters.out.MySQL;
 import app.adapters.out.MySQL.entity.BookEntity;
 import app.adapters.out.MySQL.entity.CustomerEntity;
 import app.adapters.out.MySQL.entity.TransactionEntity;
+import app.adapters.out.MySQL.repositories.BookRepository;
+import app.adapters.out.MySQL.repositories.CustomRepository;
 import app.adapters.out.MySQL.repositories.TransactionRepository;
 import app.domain.port.TransactionDao;
 import app.domain.models.Book;
 import app.domain.models.Customer;
 import app.domain.models.Transaction;
+import app.infrastructure.exceptions.TransactionNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -20,26 +24,28 @@ import java.util.stream.Collectors;
 @Component
 public class TransaktionDaoAdapter implements TransactionDao {
 
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
+    private final BookRepository bookRepository;
+    private final CustomRepository customerRepository;
 
-    public TransaktionDaoAdapter(TransactionRepository transactionRepository) {
+    public TransaktionDaoAdapter(TransactionRepository transactionRepository, BookRepository bookRepository, CustomRepository customerRepository) {
         this.transactionRepository = transactionRepository;
+        this.bookRepository = bookRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Override
     public void addTransaction(Transaction transaction) {
-        TransactionEntity transactionEntity = TransactionEntity.builder()
-                .transactionId(transaction.getTransactionId())
-                .borrowDate(transaction.getBorrowDate())
-                .returnDate(transaction.getReturnDate())
-                .dueDate(transaction.getDueDate())
-                .customer(CustomerEntity.builder()
-                        .customerId(transaction.getCustomer().getCustomerId())
-                        .build())
-                .book(BookEntity.builder()
-                        .bookId(transaction.getBook().getBookId())
-                        .build())
-                .build();
+        TransactionEntity transactionEntity = new TransactionEntity();
+        // Do not set transactionId manually, it's handled by JPA
+        transactionEntity.setBorrowDate(transaction.getBorrowDate());
+        transactionEntity.setReturnDate(transaction.getReturnDate());
+        transactionEntity.setDueDate(transaction.getDueDate());
+        transactionEntity.setCustomer(customerRepository.findById(transaction.getCustomer().getCustomerId())
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found")));
+        transactionEntity.setBook(bookRepository.findById(transaction.getBook().getBookId())
+                .orElseThrow(() -> new EntityNotFoundException("Book not found")));
+
         transactionRepository.save(transactionEntity);
     }
 
@@ -80,23 +86,7 @@ public class TransaktionDaoAdapter implements TransactionDao {
         entity.setDueDate(transaction.getDueDate());
         transactionRepository.save(entity);
     }
-
-    @Override
-    public List<Transaction> findByBookId(UUID bookId) {
-        return transactionRepository.findByBookBookId(bookId)
-                .stream()
-                .map(this::mapToDomain)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Transaction> findByCustomerId(UUID customerId) {
-        return transactionRepository.findByCustomerCustomerId(customerId)
-                .stream()
-                .map(this::mapToDomain)
-                .collect(Collectors.toList());
-    }
-
+    @Transactional
     @Override
     public void borrowBook(Transaction transaction) {
         transaction.setBorrowDate(LocalDate.now());
@@ -104,10 +94,11 @@ public class TransaktionDaoAdapter implements TransactionDao {
         addTransaction(transaction);
     }
 
+    @Transactional
     @Override
     public void returnBook(UUID transactionId, LocalDate returnDate) {
         TransactionEntity transactionEntity = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+                .orElseThrow(() -> new TransactionNotFoundException("Transaction not found"));
         transactionEntity.setReturnDate(returnDate);
         transactionRepository.save(transactionEntity);
     }

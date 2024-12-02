@@ -2,6 +2,7 @@ package app.domain.services;
 
 import app.domain.models.Book;
 import app.domain.port.BookDao;
+import app.domain.port.CustomerDao;
 import app.domain.port.TransactionDao;
 import app.adapters.in.dto.CreateNewTransaktion;
 import app.domain.models.Customer;
@@ -17,32 +18,51 @@ import java.util.stream.Collectors;
 @Service
 public class TransactionService {
     private final TransactionDao transactionDao;
-    private BookDao bookDao;
+    private final BookDao bookDao;
+    private final CustomerDao customerDao;
 
-    public TransactionService(TransactionDao transactionDao, BookDao bookDao) {
+    public TransactionService(TransactionDao transactionDao, BookDao bookDao, CustomerDao customerDao) {
         this.transactionDao = transactionDao;
         this.bookDao = bookDao;
+        this.customerDao = customerDao;
     }
-    public Transaction createNewTransaction(CreateNewTransaktion createNewTransaction) {
-        // Validate book availability
-        Book book = createNewTransaction.getBook();
+    public Transaction createNewTransaction(CreateNewTransaktion newTransaktion) {
+        // Validate borrowDate and dueDate
+        if (newTransaktion.getBorrowDate() == null || newTransaktion.getDueDate() == null) {
+            throw new IllegalArgumentException("Borrow date and due date must not be null.");
+        }
+        if (newTransaktion.getDueDate().isBefore(newTransaktion.getBorrowDate())) {
+            throw new IllegalArgumentException("Due date must be after borrow date.");
+        }
+
+        // Fetch customer and book
+        Customer customer = customerDao.getCustomer(newTransaktion.getCustomerId())
+                .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
+        Book book = bookDao.searchBookById(newTransaktion.getBookId())
+                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
+
         if (!book.isAvailable()) {
             throw new IllegalArgumentException("Book is not available for borrowing.");
         }
 
-        // Create new transaction
-        Transaction transaction = new Transaction(
-                LocalDate.now(),
-                createNewTransaction.getDueDate(),
-                createNewTransaction.getCustomer(),
-                book
-        );
-
-        // Add transaction and update book status
-        transactionDao.addTransaction(transaction);
+        // Mark the book as unavailable
         book.setAvailable(false);
+        bookDao.updateBook(book.getBookId(), book);
+
+        // Create the transaction
+        Transaction transaction = new Transaction();
+        transaction.setTransactionId(UUID.randomUUID());
+        transaction.setBorrowDate(newTransaktion.getBorrowDate());
+        transaction.setDueDate(newTransaktion.getDueDate());
+        transaction.setCustomer(customer);
+        transaction.setBook(book);
+
+        // Save the transaction
+        transactionDao.addTransaction(transaction);
         return transaction;
     }
+
     public List<Transaction> getOverdueTransactions() {
         List<Transaction> allTransactions = transactionDao.findAll();
         return allTransactions.stream()
@@ -50,43 +70,50 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
-    public String returnBook(UUID transactionId) {
-        Transaction transaction = transactionDao.findById(transactionId)
-                .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+    public String returnBook(UUID bookId) {
+        List<Transaction> transactions = transactionDao.getTransactionsForBook(new Book(bookId, null, null, 0, false, null));
 
-        transaction.setReturnDate(LocalDate.now()); // Set return date to today
-
-        // Mark the book as available again
-        transaction.getBook().setAvailable(true);
-
-        // Apply penalty if overdue
-        if (transaction.isOverdue()) {
-            System.out.println("Late fee applied for transaction ID: " + transaction.getTransactionId());
-            // Add penalty logic here
+        if (transactions.isEmpty()) {
+            throw new EntityNotFoundException("No transaction found for the given book.");
         }
 
+        Transaction transaction = transactions.getFirst(); // Assuming one active transaction per book
+        transaction.setReturnDate(LocalDate.now());
+        transaction.getBook().setAvailable(true);
+
+        // Persist the updated transaction and book
         transactionDao.updateTransaction(transaction);
-        return "Book returned successfully: " + transaction.getTransactionId();
+        bookDao.updateBook(transaction.getBook().getBookId(), transaction.getBook());
+
+        return transaction.getTransactionId().toString();
     }
     public void borrowBook(UUID customerId, UUID bookId) {
-        bookDao.searchByIsbn(bookId.toString()).ifPresent(book -> {
-            if (!book.isAvailable()) {
-                throw new RuntimeException("Book is not available for borrowing.");
-            }
+        // Fetch the book and validate availability
+        Book book = bookDao.searchBookById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found."));
 
-            Transaction transaction = new Transaction(
-                    customerId,
-                    bookId,
-                    LocalDate.now(),
-                    LocalDate.now().plusWeeks(2) // 2-week borrowing period
-            );
+        if (!book.isAvailable()) {
+            throw new RuntimeException("Book is not available for borrowing.");
+        }
 
-            transactionDao.borrowBook(transaction);
+        // Fetch the customer
+        Customer customer = customerDao.getCustomer(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found."));
 
-            // Update book availability
-            book.setAvailable(false);
-            bookDao.updateBook(bookId, book);
-        });
+        // Create a new transaction
+        Transaction transaction = new Transaction();
+        transaction.setTransactionId(UUID.randomUUID());
+        transaction.setBorrowDate(LocalDate.now());
+        transaction.setDueDate(LocalDate.now().plusWeeks(2)); // Example: 2-week loan period
+        transaction.setCustomer(customer);
+        transaction.setBook(book);
+
+        // Save the transaction
+        transactionDao.addTransaction(transaction);
+
+        // Update book availability
+        book.setAvailable(false);
+        bookDao.updateBook(bookId, book);
     }
     public List<Transaction> viewBorrowingHistory(UUID customerId) {
         Customer customer = new Customer();
@@ -107,53 +134,4 @@ public class TransactionService {
         System.out.println("Sending notification to " + email + ": " + message);
         // Real notification logic would go here
     }
-
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-
-
-/*private final TransactionRepository transactionRepository;
-    private final Book bookRepository;
-    private final CustomerRepository customerRepository;
-    private static final Logger LOGGER = Logger.getLogger(TransactionServiceImpl.class.getName());
-
-    public TransactionServiceImpl(TransactionRepository transactionRepository, Book bookRepository, CustomerRepository customerRepository) {
-        this.transactionRepository = transactionRepository;
-        this.bookRepository = bookRepository;
-        this.customerRepository = customerRepository;
-    }
-
-    @Transactional
-    public Transaction borrowBook(Integer customerId, Integer bookId) {
-        if (!customerRepository.existsByCustomerIdAndPrivileges(customerId, true) || !bookRepository.existsByBookIdAndAvailability(bookId, true)) {
-            throw new RuntimeException("Borrowing not allowed");
-        }
-
-        app.persistence.entity.Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
-        book.setAvailability(false);  // Assuming a `setAvailable` method in the Book entity
-        bookRepository.save(book);
-
-        Transaction transaction = new Transaction();
-        transaction.setCustomer(customerRepository.findById(customerId).orElseThrow(() -> new RuntimeException("Customer not found")));
-        transaction.setBook(book);
-        transaction.setBorrowDate(LocalDate.now());
-        transaction.setDueDate(LocalDate.now().plusDays(14));
-
-        LOGGER.info("Book borrowed by customer " + customerId + ": " + bookId);
-        return transactionRepository.save(transaction);
-    }
-
-    @Transactional
-    public Transaction returnBook(Integer transactionId) {
-        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new RuntimeException("Transaction not found"));
-        transaction.setReturnDate(LocalDate.now());
-
-        app.persistence.entity.Book book = transaction.getBook();
-        book.setAvailability(true);  // Assuming a `setAvailable` method in the Book entity
-        bookRepository.save(book);
-
-        LOGGER.info("Book returned for transaction " + transactionId);
-        return transactionRepository.save(transaction);
-    }*/
 }

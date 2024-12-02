@@ -20,8 +20,6 @@ public interface TransactionDao {
     List<Transaction> findAll();
 
     void updateTransaction(Transaction transaction);
-    List<Transaction> findByBookId(UUID bookId);
-    List<Transaction> findByCustomerId(UUID customerId);
     void borrowBook(Transaction transaction);
     void returnBook(UUID transactionId, LocalDate returnDate);
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 
 
 public interface BookRepository extends JpaRepository<BookEntity, UUID> {
-    @Query("SELECT b FROM BookEntity b WHERE b.title = :title")
+    @Query("SELECT b FROM BookEntity b LEFT JOIN FETCH b.authors WHERE b.title = :title")
     Optional<BookEntity> findBookByTitle(@Param("title") String title);
 
     @Query("SELECT b FROM BookEntity b JOIN b.authors a WHERE a.name = :author AND b.availability = :isAvailable")

@@ -4,6 +4,7 @@ import app.adapters.out.MySQL.entity.AuthorEntity;
 import app.adapters.out.MySQL.entity.BookEntity;
 import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.adapters.out.MySQL.repositories.BookRepository;
+import app.domain.models.Author;
 import app.domain.port.BookDao;
 import app.domain.models.Book;
 import app.infrastructure.exceptions.BookNotFoundException;
@@ -42,7 +43,6 @@ public class BookDaoAdapter implements BookDao {
 
         // Persist the book with associated authors
         BookEntity bookEntity = BookEntity.builder()
-                .bookId(book.getBookId() != null ? book.getBookId() : UUID.randomUUID())
                 .title(book.getTitle())
                 .isbn(book.getIsbn())
                 .publicationYear(book.getPublicationYear())
@@ -50,7 +50,10 @@ public class BookDaoAdapter implements BookDao {
                 .created_at(book.getCreatedAt())
                 .authors(authorEntities)
                 .build();
-        bookRepository.save(bookEntity);
+
+        // Save the entity and fetch the generated ID
+        BookEntity savedEntity = bookRepository.save(bookEntity);
+        book.setBookId(savedEntity.getBookId()); // Set the generated ID in the domain model
     }
 
     @Override
@@ -83,7 +86,16 @@ public class BookDaoAdapter implements BookDao {
                         bookEntity.getIsbn(),
                         bookEntity.getPublicationYear(),
                         bookEntity.isAvailability(),
-                        bookEntity.getCreated_at()
+                        bookEntity.getCreated_at(),
+                        bookEntity.getAuthors() != null
+                                ? bookEntity.getAuthors().stream()
+                                .map(authorEntity -> new Author(
+                                        authorEntity.getAuthorId(),
+                                        authorEntity.getName(),
+                                        authorEntity.getBio()
+                                ))
+                                .collect(Collectors.toSet())
+                                : new HashSet<>()
                 ));
     }
 
@@ -92,11 +104,21 @@ public class BookDaoAdapter implements BookDao {
         List<BookEntity> entities = bookRepository.findBooksByAuthor(author, isAvailable);
         return entities.stream()
                 .map(e -> new Book(
+                        e.getBookId(),
                         e.getTitle(),
                         e.getIsbn(),
                         e.getPublicationYear(),
                         e.isAvailability(),
-                        e.getCreated_at()
+                        e.getCreated_at(),
+                        e.getAuthors() != null
+                                ? e.getAuthors().stream()
+                                .map(authorEntity -> new Author(
+                                        authorEntity.getAuthorId(),
+                                        authorEntity.getName(),
+                                        authorEntity.getBio()
+                                ))
+                                .collect(Collectors.toSet())
+                                : new HashSet<>()
                 ))
                 .toList();
     }
@@ -105,11 +127,21 @@ public class BookDaoAdapter implements BookDao {
     public Optional<Book> searchByIsbn(String isbn) {
         Optional<BookEntity> entity = bookRepository.findBooksByIsbn(isbn);
         return entity.map(e -> new Book(
+                e.getBookId(),
                 e.getTitle(),
                 e.getIsbn(),
                 e.getPublicationYear(),
                 e.isAvailability(),
-                e.getCreated_at()
+                e.getCreated_at(),
+                e.getAuthors() != null
+                        ? e.getAuthors().stream()
+                        .map(authorEntity -> new Author(
+                                authorEntity.getAuthorId(),
+                                authorEntity.getName(),
+                                authorEntity.getBio()
+                        ))
+                        .collect(Collectors.toSet())
+                        : new HashSet<>()
         ));
     }
 
@@ -117,11 +149,21 @@ public class BookDaoAdapter implements BookDao {
     public Optional<Book> searchBookById(UUID id) {
         Optional<BookEntity> bookEntity = bookRepository.findBookByBookId(id);
         return bookEntity.map(e -> new Book(
+                e.getBookId(),
                 e.getTitle(),
                 e.getIsbn(),
                 e.getPublicationYear(),
                 e.isAvailability(),
-                e.getCreated_at()
+                e.getCreated_at(),
+                e.getAuthors() != null
+                        ? e.getAuthors().stream()
+                        .map(authorEntity -> new Author(
+                                authorEntity.getAuthorId(),
+                                authorEntity.getName(),
+                                authorEntity.getBio()
+                        ))
+                        .collect(Collectors.toSet())
+                        : new HashSet<>()
         ));
     }
 }

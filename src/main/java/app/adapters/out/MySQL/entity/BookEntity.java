@@ -37,7 +37,7 @@ public class BookEntity {
     private LocalDate created_at;
 
 
-    @ManyToMany(mappedBy = "books", cascade = CascadeType.PERSIST)
+    @ManyToMany(mappedBy = "books", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<AuthorEntity> authors;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)

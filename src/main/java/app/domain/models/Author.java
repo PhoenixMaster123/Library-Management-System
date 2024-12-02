@@ -16,10 +16,11 @@ public class Author {
     private final Set<Book> books = new HashSet<>();
 
     public Author(String name, String bio) {
-        this.authorId = UUID.randomUUID();
         this.name = name;
         this.bio = bio;
     }
+
+    // Constructor for explicitly setting the UUID
     public Author(UUID authorId, String name, String bio) {
         this.authorId = authorId;
         this.name = name;

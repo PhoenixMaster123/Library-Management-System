@@ -20,7 +20,7 @@ public class AuthorDaoAdapter implements AuthorDao {
     @Override
     public void addAuthor(Author author) {
         AuthorEntity authorEntity = AuthorEntity.builder()
-                .authorId(author.getAuthorId())
+                .authorId(author.getAuthorId()) // Use the provided ID if not null
                 .name(author.getName())
                 .bio(author.getBio())
                 .build();

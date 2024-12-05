@@ -51,7 +51,10 @@ public class BookDaoAdapter implements BookDao {
                 .build();
 
         authorEntities.forEach(author -> {
-            author.getBooks().add(bookEntity); // Ensure bidirectional relationship
+            if (author.getBooks() == null) {
+                author.setBooks(new HashSet<>()); // Initialize books if it's null
+            }
+            author.getBooks().add(bookEntity); // Add the book to the author's books
         });
         // Save the entity and fetch the generated ID
         BookEntity savedEntity = bookRepository.save(bookEntity);

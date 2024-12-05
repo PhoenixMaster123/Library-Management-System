@@ -27,7 +27,12 @@ public class AuthorEntity {
     @Column(length = 500)
     private String bio;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "author_books", // Specify the join table name
+            joinColumns = @JoinColumn(name = "author_id"), // Foreign key to authors
+            inverseJoinColumns = @JoinColumn(name = "book_id") // Foreign key to books
+    )
     private Set<BookEntity> books = new HashSet<>();
 
     public AuthorEntity() {

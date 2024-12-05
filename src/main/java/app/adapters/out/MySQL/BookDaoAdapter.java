@@ -48,9 +48,11 @@ public class BookDaoAdapter implements BookDao {
                 .publicationYear(book.getPublicationYear())
                 .availability(book.isAvailable())
                 .created_at(book.getCreatedAt())
-                .authors(authorEntities)
                 .build();
 
+        authorEntities.forEach(author -> {
+            author.getBooks().add(bookEntity); // Ensure bidirectional relationship
+        });
         // Save the entity and fetch the generated ID
         BookEntity savedEntity = bookRepository.save(bookEntity);
         book.setBookId(savedEntity.getBookId()); // Set the generated ID in the domain model

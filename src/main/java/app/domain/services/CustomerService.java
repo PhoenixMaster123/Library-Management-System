@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Transactional
 public class CustomerService {
 
     private final CustomerDao customerDao;

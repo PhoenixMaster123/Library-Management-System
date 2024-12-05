@@ -3,12 +3,15 @@ package app.adapters.out.MySQL;
 import app.adapters.out.MySQL.entity.AuthorEntity;
 import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.domain.models.Author;
+import app.domain.models.Book;
 import app.domain.port.AuthorDao;
 import app.infrastructure.exceptions.AuthorNotFoundException;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class AuthorDaoAdapter implements AuthorDao {
@@ -47,7 +50,20 @@ public class AuthorDaoAdapter implements AuthorDao {
                 .map(authorEntity -> new Author(
                         authorEntity.getAuthorId(),
                         authorEntity.getName(),
-                        authorEntity.getBio()
+                        authorEntity.getBio(),
+                        authorEntity.getBooks() != null
+                                ? authorEntity.getBooks().stream()
+                                .map(bookEntity -> new Book(
+                                        bookEntity.getBookId(),
+                                        bookEntity.getTitle(),
+                                        bookEntity.getIsbn(),
+                                        bookEntity.getPublicationYear(),
+                                        bookEntity.isAvailability(),
+                                        bookEntity.getCreated_at(),
+                                        new HashSet<>() // Avoid circular references
+                                ))
+                                .collect(Collectors.toSet())
+                                : new HashSet<>()
                 ));
     }
 }

@@ -8,6 +8,7 @@ import app.adapters.in.dto.CreateNewTransaktion;
 import app.domain.models.Customer;
 import app.domain.models.Transaction;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class TransactionService {
     private final TransactionDao transactionDao;
     private final BookDao bookDao;

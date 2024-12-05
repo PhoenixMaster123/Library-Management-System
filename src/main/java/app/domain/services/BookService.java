@@ -4,6 +4,7 @@ import app.domain.models.Author;
 import app.domain.port.BookDao;
 import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Book;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 
 @Service
+@Transactional
 public class BookService {
 
     private final BookDao bookDao;

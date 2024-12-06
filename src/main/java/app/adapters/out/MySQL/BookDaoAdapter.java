@@ -8,6 +8,8 @@ import app.domain.models.Author;
 import app.domain.port.BookDao;
 import app.domain.models.Book;
 import app.infrastructure.exceptions.BookNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -82,6 +84,28 @@ public class BookDaoAdapter implements BookDao {
             throw new BookNotFoundException("Book not found with ID: " + bookID);
         }
     }
+
+    @Override
+    public Page<Book> getPaginatedBooks(Pageable pageable) {
+        return bookRepository.findAll(pageable).map(bookEntity -> new Book(
+                bookEntity.getBookId(),
+                bookEntity.getTitle(),
+                bookEntity.getIsbn(),
+                bookEntity.getPublicationYear(),
+                bookEntity.isAvailability(),
+                bookEntity.getCreated_at(),
+                bookEntity.getAuthors() != null
+                        ? bookEntity.getAuthors().stream()
+                        .map(authorEntity -> new Author(
+                                authorEntity.getAuthorId(),
+                                authorEntity.getName(),
+                                authorEntity.getBio()
+                        ))
+                        .collect(Collectors.toSet())
+                        : new HashSet<>()
+        ));
+    }
+
     @Override
     public Optional<Book> searchBookByTitle(String title) {
         return bookRepository.findBookByTitle(title)

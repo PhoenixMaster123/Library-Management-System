@@ -5,6 +5,8 @@ import app.domain.port.BookDao;
 import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Book;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -57,6 +59,9 @@ public class BookService {
 
     public void deleteBook(UUID bookId) {
         bookDao.deleteBook(bookId);
+    }
+    public Page<Book> getPaginatedBooks(Pageable pageable) {
+        return bookDao.getPaginatedBooks(pageable);
     }
     public Optional<Book> searchBookByTitle(String title) {
         return bookDao.searchBookByTitle(title);

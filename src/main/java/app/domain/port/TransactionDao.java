@@ -4,6 +4,8 @@ import app.adapters.out.MySQL.entity.TransactionEntity;
 import app.domain.models.Book;
 import app.domain.models.Customer;
 import app.domain.models.Transaction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,7 +16,7 @@ public interface TransactionDao {
     void addTransaction(Transaction transaction);
 
     List<Transaction> getTransactionsForBook(Book book);
-    List<Transaction> viewBorrowingHistory(Customer customer);
+    Page<Transaction> viewBorrowingHistory(Customer customer, Pageable pageable);
     Optional<Transaction> findById(UUID transactionId);
 
     List<Transaction> findAll();

@@ -5,6 +5,8 @@ import app.adapters.out.MySQL.repositories.CustomRepository;
 import app.domain.port.CustomerDao;
 import app.domain.models.Customer;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -32,6 +34,15 @@ public class CustomerDaoAdapter implements CustomerDao {
         // Update the Customer domain object with the generated ID
         customer.setCustomerId(savedEntity.getCustomerId());
 
+    }
+    @Override
+    public Page<Customer> getPaginatedCustomers(Pageable pageable) {
+        return customRepository.findAll(pageable).map(customerEntity -> new Customer(
+                customerEntity.getCustomerId(),
+                customerEntity.getName(),
+                customerEntity.getEmail(),
+                customerEntity.isPrivileges()
+        ));
     }
 
 

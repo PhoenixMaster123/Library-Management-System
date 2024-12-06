@@ -6,6 +6,8 @@ import app.domain.models.Author;
 import app.domain.models.Book;
 import app.domain.port.AuthorDao;
 import app.infrastructure.exceptions.AuthorNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -28,6 +30,14 @@ public class AuthorDaoAdapter implements AuthorDao {
                 .bio(author.getBio())
                 .build();
         authorRepository.save(authorEntity);
+    }
+    @Override
+    public Page<Author> getPaginatedAuthors(Pageable pageable) {
+        return authorRepository.findAll(pageable).map(authorEntity -> new Author(
+                authorEntity.getAuthorId(),
+                authorEntity.getName(),
+                authorEntity.getBio()
+        ));
     }
     @Override
     public void updateAuthor(UUID authorId, Author newAuthor) {

@@ -13,6 +13,8 @@ import app.domain.models.Transaction;
 import app.infrastructure.exceptions.TransactionNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -58,11 +60,9 @@ public class TransaktionDaoAdapter implements TransactionDao {
     }
 
     @Override
-    public List<Transaction> viewBorrowingHistory(Customer customer) {
-        return transactionRepository.findByCustomerCustomerId(customer.getCustomerId())  // Closing parenthesis here
-                .stream()
-                .map(this::mapToDomain)
-                .collect(Collectors.toList());
+    public Page<Transaction> viewBorrowingHistory(Customer customer, Pageable pageable) {
+        return transactionRepository.findByCustomerId(customer.getCustomerId(), pageable)
+                .map(this::mapToDomain);
     }
 
     @Override

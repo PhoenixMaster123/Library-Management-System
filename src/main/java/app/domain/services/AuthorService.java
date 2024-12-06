@@ -5,6 +5,8 @@ import app.domain.models.Author;
 import app.domain.models.Book;
 import app.domain.port.AuthorDao;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -37,5 +39,8 @@ public class AuthorService {
     }
     public Optional<Author> getAuthorByName(String name) {
         return authorDao.searchAuthorByName(name);
+    }
+    public Page<Author> getPaginatedAuthors(Pageable pageable) {
+        return authorDao.getPaginatedAuthors(pageable);
     }
 }

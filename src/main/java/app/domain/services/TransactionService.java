@@ -9,10 +9,13 @@ import app.domain.models.Customer;
 import app.domain.models.Transaction;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -117,10 +120,13 @@ public class TransactionService {
         book.setAvailable(false);
         bookDao.updateBook(bookId, book);
     }
-    public List<Transaction> viewBorrowingHistory(UUID customerId) {
+    public Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable) {
         Customer customer = new Customer();
         customer.setCustomerId(customerId);
-        return transactionDao.viewBorrowingHistory(customer);
+        return transactionDao.viewBorrowingHistory(customer, pageable);
+    }
+    public Optional<Transaction> findById(UUID transactionId) {
+        return transactionDao.findById(transactionId);
     }
     public void sendOverdueNotifications() {
         List<Transaction> overdueTransactions = getOverdueTransactions();

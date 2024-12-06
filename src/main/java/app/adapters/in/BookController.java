@@ -42,7 +42,7 @@ public class BookController {
     public ResponseEntity<?> getBookByAuthor(@NotNull @PathVariable("author") String author) {
         return ResponseEntity.ok(bookService.searchBookByAuthors(author, true));
     }
-    @GetMapping(value = "/{isbn}",produces = "application/singlxzsae-book-response+json;version=1")
+    @GetMapping(value = "/{isbn}",produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBookByIsbn(@NotNull @PathVariable("isbn") String isbn) {
         return ResponseEntity.ok(bookService.searchByIsbn(isbn));
     }

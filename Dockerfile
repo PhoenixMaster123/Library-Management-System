@@ -1,14 +1,5 @@
-# Use a JDK 21 base image
-FROM openjdk:21-jdk-slim
-
-# Set the working directory inside the container
+FROM openjdk:21
 WORKDIR /app
-
-# Copy the compiled classes from your local target directory to the container
-COPY target/classes /app/classes
-
-# Copy any required configuration files (like application.properties)
-COPY target/classes/application.properties src/main/resources/application.properties
-
-# Run the application
-CMD ["java", "-cp", "/app/classes", "app.Application"]
+COPY target/LibraryMS-0.0.1-SNAPSHOT.jar /app/LibraryMS-0.0.1-SNAPSHOT.jar
+EXPOSE 8080
+CMD ["java", "-jar", "LibraryMS-0.0.1-SNAPSHOT.jar"]

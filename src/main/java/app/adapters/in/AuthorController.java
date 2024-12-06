@@ -39,6 +39,7 @@ public class AuthorController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+    // TODO: NEED TO BE TESTET
     @GetMapping(value = "/paginated", produces = "application/paginated-authors-response+json;version=1")
     public ResponseEntity<Page<Author>> getPaginatedAuthors(
             @RequestParam Optional<Integer> page,

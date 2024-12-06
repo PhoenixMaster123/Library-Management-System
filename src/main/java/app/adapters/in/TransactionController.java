@@ -78,6 +78,8 @@ public class TransactionController {
         }
     }
 
+    // TODO: NEED TO BE TESTET -> UPDATE MAVEN IF YOU ARE STILL NOT
+
     @GetMapping(value = "/history/{customerId}", produces = "application/paginated-transactions-response+json;version=1")
     public ResponseEntity<PagedModel<EntityModel<Transaction>>> viewBorrowingHistory(
             @PathVariable UUID customerId,

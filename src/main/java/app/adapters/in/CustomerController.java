@@ -45,6 +45,7 @@ public class CustomerController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+    // TODO: NEED TO BE TESTET
     @GetMapping(value = "/paginated", produces = "application/paginated-customers-response+json;version=1")
     public ResponseEntity<Page<Customer>> getPaginatedCustomers(
             @RequestParam Optional<Integer> page,

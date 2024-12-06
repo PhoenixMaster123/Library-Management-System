@@ -123,7 +123,7 @@ public class TransactionService {
     public Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable) {
         Customer customer = new Customer();
         customer.setCustomerId(customerId);
-        return transactionDao.viewBorrowingHistory(customer, pageable);
+        return transactionDao.viewBorrowingHistory(customerId, pageable);
     }
     public Optional<Transaction> findById(UUID transactionId) {
         return transactionDao.findById(transactionId);

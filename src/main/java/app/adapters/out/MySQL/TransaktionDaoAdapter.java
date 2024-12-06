@@ -60,8 +60,8 @@ public class TransaktionDaoAdapter implements TransactionDao {
     }
 
     @Override
-    public Page<Transaction> viewBorrowingHistory(Customer customer, Pageable pageable) {
-        return transactionRepository.findByCustomerId(customer.getCustomerId(), pageable)
+    public Page<Transaction> viewBorrowingHistory(UUID customerID, Pageable pageable) {
+        return transactionRepository.findByCustomerCustomerId(customerID, pageable)
                 .map(this::mapToDomain);
     }
 

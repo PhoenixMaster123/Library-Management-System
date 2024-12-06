@@ -16,7 +16,7 @@ public interface TransactionDao {
     void addTransaction(Transaction transaction);
 
     List<Transaction> getTransactionsForBook(Book book);
-    Page<Transaction> viewBorrowingHistory(Customer customer, Pageable pageable);
+    Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable);
     Optional<Transaction> findById(UUID transactionId);
 
     List<Transaction> findAll();

@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
-    List<TransactionEntity> findByCustomerCustomerId(UUID customerId);
+    //List<TransactionEntity> findByCustomerCustomerId(UUID customerId);
 
     List<TransactionEntity> findByBookBookId(UUID bookId);
-    Page<TransactionEntity> findByCustomerId(UUID customerId, Pageable pageable);
+    Page<TransactionEntity> findByCustomerCustomerId(UUID customerId, Pageable pageable);
 
 }

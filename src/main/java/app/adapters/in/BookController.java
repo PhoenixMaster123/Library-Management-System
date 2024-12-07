@@ -79,6 +79,23 @@ public class BookController {
         Page<Book> books = bookService.searchBooks(query, pageable);
         return ResponseEntity.ok(books);
     }
+    @GetMapping(value = "/search/paginated/{query}", produces = "application/paginated-books-response+json;version=1")
+    public ResponseEntity<Page<Book>> searchBooksByPath(
+            @PathVariable String query,
+            @RequestParam Optional<Integer> page,
+            @RequestParam Optional<Integer> size,
+            @RequestParam Optional<String> sortBy
+    ) {
+        PageRequest pageable = PageRequest.of(
+                page.orElse(0),  // Default to page 0
+                size.orElse(10), // Default to 10 items per page
+                Sort.Direction.ASC,
+                sortBy.orElse("title") // Default sort field
+        );
+
+        Page<Book> books = bookService.searchBooks(query, pageable);
+        return ResponseEntity.ok(books);
+    }
 
 
 

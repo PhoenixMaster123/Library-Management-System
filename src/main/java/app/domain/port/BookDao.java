@@ -16,6 +16,7 @@ public interface BookDao {
     List<Book> searchBookByAuthors(String author, boolean isAvailable);
     Optional<Book> searchByIsbn(String isbn);
     Optional<Book> searchBookById(UUID id);
+    Page<Book> searchBooks(String query, Pageable pageable);
     Page<Book> getPaginatedBooks(Pageable pageable);
 
 }

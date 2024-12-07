@@ -77,4 +77,7 @@ public class BookService {
     public Optional<Book> searchById(UUID id) {
         return bookDao.searchBookById(id);
     }
+    public Page<Book> searchBooks(String query, Pageable pageable) {
+        return bookDao.searchBooks(query, pageable);
+    }
 }

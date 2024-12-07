@@ -195,4 +195,30 @@ public class BookDaoAdapter implements BookDao {
                         : new HashSet<>()
         ));
     }
+    @Override
+    public Page<Book> searchBooks(String query, Pageable pageable) {
+        String lowerQuery = query.toLowerCase();
+
+        // Filter and paginate using a repository query
+        Page<BookEntity> bookEntities = bookRepository.findBooksByQuery(lowerQuery, pageable);
+
+        return bookEntities.map(bookEntity -> new Book(
+                bookEntity.getBookId(),
+                bookEntity.getTitle(),
+                bookEntity.getIsbn(),
+                bookEntity.getPublicationYear(),
+                bookEntity.isAvailability(),
+                bookEntity.getCreated_at(),
+                bookEntity.getAuthors() != null
+                        ? bookEntity.getAuthors().stream()
+                        .map(authorEntity -> new Author(
+                                authorEntity.getAuthorId(),
+                                authorEntity.getName(),
+                                authorEntity.getBio()
+                        ))
+                        .collect(Collectors.toSet())
+                        : new HashSet<>()
+        ));
+    }
+
 }

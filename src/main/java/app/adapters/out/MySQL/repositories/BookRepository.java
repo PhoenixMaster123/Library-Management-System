@@ -28,6 +28,10 @@ public interface BookRepository extends JpaRepository<BookEntity, UUID> {
     Optional<BookEntity> findBooksByIsbn(@Param("isbn") String isbn);
     Optional<BookEntity> findBookByBookId(@Param("id") UUID id);
 
-    @Query("SELECT b FROM BookEntity b")
-    Page<BookEntity> findAllBooks(Pageable pageable);
+    @Query("SELECT b FROM BookEntity b LEFT JOIN b.authors a " +
+            "WHERE LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(b.isbn) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR CAST(b.publicationYear AS string) LIKE CONCAT('%', :query, '%') " +
+            "OR LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<BookEntity> findBooksByQuery(@Param("query") String query, Pageable pageable);
 }

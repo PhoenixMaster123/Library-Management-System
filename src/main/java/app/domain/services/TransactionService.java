@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -66,13 +65,6 @@ public class TransactionService {
         // Save the transaction
         transactionDao.addTransaction(transaction);
         return transaction;
-    }
-
-    public List<Transaction> getOverdueTransactions() {
-        List<Transaction> allTransactions = transactionDao.findAll();
-        return allTransactions.stream()
-                .filter(Transaction::isOverdue)
-                .collect(Collectors.toList());
     }
 
     public String returnBook(UUID bookId) {
@@ -129,19 +121,5 @@ public class TransactionService {
     }
     public Optional<Transaction> findById(UUID transactionId) {
         return transactionDao.findById(transactionId);
-    }
-    public void sendOverdueNotifications() {
-        List<Transaction> overdueTransactions = getOverdueTransactions();
-        overdueTransactions.forEach(transaction -> {
-            Customer customer = transaction.getCustomer();
-            String message = "Dear " + customer.getName() + ", your transaction for book '"
-                    + transaction.getBook().getTitle() + "' is overdue. Please return it immediately.";
-            // Assume notificationService sends emails or notifications
-            sendNotification(customer.getEmail(), message);
-        });
-    }
-    private void sendNotification(String email, String message) {
-        System.out.println("Sending notification to " + email + ": " + message);
-        // Real notification logic would go here
     }
 }

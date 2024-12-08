@@ -45,8 +45,6 @@ public class CustomerDaoAdapter implements CustomerDao {
                 customerEntity.isPrivileges()
         ));
     }
-
-
     @Override
     public Optional<Customer> getCustomer(UUID id) {
         return customRepository.findById(id)
@@ -78,7 +76,6 @@ public class CustomerDaoAdapter implements CustomerDao {
                     return customer;
                 });
     }
-
     @Override
     public Optional<Customer> getCustomerByName(String name) {
         return customRepository.findByName(name)

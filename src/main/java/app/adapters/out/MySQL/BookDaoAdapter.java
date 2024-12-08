@@ -87,122 +87,44 @@ public class BookDaoAdapter implements BookDao {
 
     @Override
     public Page<Book> getPaginatedBooks(Pageable pageable) {
-        return bookRepository.findAll(pageable).map(bookEntity -> new Book(
-                bookEntity.getBookId(),
-                bookEntity.getTitle(),
-                bookEntity.getIsbn(),
-                bookEntity.getPublicationYear(),
-                bookEntity.isAvailability(),
-                bookEntity.getCreated_at(),
-                bookEntity.getAuthors() != null
-                        ? bookEntity.getAuthors().stream()
-                        .map(authorEntity -> new Author(
-                                authorEntity.getAuthorId(),
-                                authorEntity.getName(),
-                                authorEntity.getBio()
-                        ))
-                        .collect(Collectors.toSet())
-                        : new HashSet<>()
-        ));
+        return bookRepository.findAll(pageable).map(this::mapToBook);
     }
 
     @Override
     public Optional<Book> searchBookByTitle(String title) {
-        return bookRepository.findBookByTitle(title)
-                .map(bookEntity -> new Book(
-                        bookEntity.getBookId(),
-                        bookEntity.getTitle(),
-                        bookEntity.getIsbn(),
-                        bookEntity.getPublicationYear(),
-                        bookEntity.isAvailability(),
-                        bookEntity.getCreated_at(),
-                        bookEntity.getAuthors() != null
-                                ? bookEntity.getAuthors().stream()
-                                .map(authorEntity -> new Author(
-                                        authorEntity.getAuthorId(),
-                                        authorEntity.getName(),
-                                        authorEntity.getBio()
-                                ))
-                                .collect(Collectors.toSet())
-                                : new HashSet<>()
-                ));
+        Optional<BookEntity> bookEntity = bookRepository.findBookByTitle(title);
+        return bookEntity.map(this::mapToBook);
     }
 
     @Override
     public List<Book> searchBookByAuthors(String author, boolean isAvailable) {
         List<BookEntity> entities = bookRepository.findBooksByAuthor(author, isAvailable);
         return entities.stream()
-                .map(e -> new Book(
-                        e.getBookId(),
-                        e.getTitle(),
-                        e.getIsbn(),
-                        e.getPublicationYear(),
-                        e.isAvailability(),
-                        e.getCreated_at(),
-                        e.getAuthors() != null
-                                ? e.getAuthors().stream()
-                                .map(authorEntity -> new Author(
-                                        authorEntity.getAuthorId(),
-                                        authorEntity.getName(),
-                                        authorEntity.getBio()
-                                ))
-                                .collect(Collectors.toSet())
-                                : new HashSet<>()
-                ))
-                .toList();
+                .map(this::mapToBook)
+                .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Book> searchByIsbn(String isbn) {
-        Optional<BookEntity> entity = bookRepository.findBooksByIsbn(isbn);
-        return entity.map(e -> new Book(
-                e.getBookId(),
-                e.getTitle(),
-                e.getIsbn(),
-                e.getPublicationYear(),
-                e.isAvailability(),
-                e.getCreated_at(),
-                e.getAuthors() != null
-                        ? e.getAuthors().stream()
-                        .map(authorEntity -> new Author(
-                                authorEntity.getAuthorId(),
-                                authorEntity.getName(),
-                                authorEntity.getBio()
-                        ))
-                        .collect(Collectors.toSet())
-                        : new HashSet<>()
-        ));
+        Optional<BookEntity> bookEntity = bookRepository.findBooksByIsbn(isbn);
+        return bookEntity.map(this::mapToBook);
     }
 
     @Override
     public Optional<Book> searchBookById(UUID id) {
         Optional<BookEntity> bookEntity = bookRepository.findBookByBookId(id);
-        return bookEntity.map(e -> new Book(
-                e.getBookId(),
-                e.getTitle(),
-                e.getIsbn(),
-                e.getPublicationYear(),
-                e.isAvailability(),
-                e.getCreated_at(),
-                e.getAuthors() != null
-                        ? e.getAuthors().stream()
-                        .map(authorEntity -> new Author(
-                                authorEntity.getAuthorId(),
-                                authorEntity.getName(),
-                                authorEntity.getBio()
-                        ))
-                        .collect(Collectors.toSet())
-                        : new HashSet<>()
-        ));
+        return bookEntity.map(this::mapToBook);
     }
     @Override
     public Page<Book> searchBooks(String query, Pageable pageable) {
         String lowerQuery = query.toLowerCase();
-
         // Filter and paginate using a repository query
         Page<BookEntity> bookEntities = bookRepository.findBooksByQuery(lowerQuery, pageable);
 
-        return bookEntities.map(bookEntity -> new Book(
+        return bookEntities.map(this::mapToBook);
+    }
+    private Book mapToBook(BookEntity bookEntity) {
+        return new Book(
                 bookEntity.getBookId(),
                 bookEntity.getTitle(),
                 bookEntity.getIsbn(),
@@ -218,7 +140,7 @@ public class BookDaoAdapter implements BookDao {
                         ))
                         .collect(Collectors.toSet())
                         : new HashSet<>()
-        ));
+        );
     }
 
 }

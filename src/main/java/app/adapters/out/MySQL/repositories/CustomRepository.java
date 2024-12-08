@@ -13,6 +13,4 @@ import java.util.UUID;
 @Repository
 public interface CustomRepository extends JpaRepository<CustomerEntity, UUID> {
     Optional<CustomerEntity> findByName(String name);
-    @Query("SELECT c FROM CustomerEntity c")
-    Page<CustomerEntity> findAllCustomers(Pageable pageable);
 }

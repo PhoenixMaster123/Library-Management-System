@@ -11,9 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -78,8 +76,6 @@ public class TransactionController {
                     .body("Failed to borrow book: " + e.getMessage());
         }
     }
-
-    // TODO: NEED TO BE TESTET -> UPDATE MAVEN IF YOU ARE STILL NOT
 
     @GetMapping(value = "/history/{customerId}", produces = "application/paginated-transactions-response+json;version=1")
     public ResponseEntity<PagedModel<EntityModel<Transaction>>> viewBorrowingHistory(

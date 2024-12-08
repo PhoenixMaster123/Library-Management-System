@@ -1,7 +1,6 @@
 package app.domain.port;
 
 import app.domain.models.Author;
-import app.domain.models.Book;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

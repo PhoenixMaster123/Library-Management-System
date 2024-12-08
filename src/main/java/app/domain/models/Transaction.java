@@ -43,6 +43,13 @@ public class Transaction {
     public Transaction() {
 
     }
+
+    public Transaction(UUID transactionId, LocalDate borrowDate, LocalDate returnDate) {
+        this.transactionId = transactionId;
+        this.borrowDate = borrowDate;
+        this.returnDate = returnDate;
+    }
+
     public boolean isOverdue() {
         return returnDate == null && LocalDate.now().isAfter(dueDate);
     }

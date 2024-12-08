@@ -105,6 +105,10 @@ public class TransactionService {
         Customer customer = customerDao.getCustomer(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found."));
 
+        if (!customer.isPrivileges()) {
+            throw new RuntimeException("Customer does not have borrowing privileges.");
+        }
+
         // Create a new transaction
         Transaction transaction = new Transaction();
         transaction.setTransactionId(UUID.randomUUID());
@@ -121,8 +125,6 @@ public class TransactionService {
         bookDao.updateBook(bookId, book);
     }
     public Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable) {
-        Customer customer = new Customer();
-        customer.setCustomerId(customerId);
         return transactionDao.viewBorrowingHistory(customerId, pageable);
     }
     public Optional<Transaction> findById(UUID transactionId) {

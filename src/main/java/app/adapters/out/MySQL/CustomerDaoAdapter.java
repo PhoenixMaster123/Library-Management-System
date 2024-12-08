@@ -2,6 +2,7 @@ package app.adapters.out.MySQL;
 
 import app.adapters.out.MySQL.entity.CustomerEntity;
 import app.adapters.out.MySQL.repositories.CustomRepository;
+import app.domain.models.Transaction;
 import app.domain.port.CustomerDao;
 import app.domain.models.Customer;
 import jakarta.persistence.EntityNotFoundException;
@@ -49,12 +50,33 @@ public class CustomerDaoAdapter implements CustomerDao {
     @Override
     public Optional<Customer> getCustomer(UUID id) {
         return customRepository.findById(id)
-                .map(customerEntity -> new Customer(
-                        customerEntity.getCustomerId(),
-                        customerEntity.getName(),
-                        customerEntity.getEmail(),
-                        customerEntity.isPrivileges()
-                ));
+                .map(customerEntity -> {
+                    // Map CustomerEntity to Customer
+                    Customer customer = new Customer(
+                            customerEntity.getCustomerId(),
+                            customerEntity.getName(),
+                            customerEntity.getEmail(),
+                            customerEntity.isPrivileges()
+                    );
+
+                    // Map transactions and add them to the customer
+                    customerEntity.getTransactions().forEach(transactionEntity -> {
+                        Transaction transaction = new Transaction(
+                                transactionEntity.getTransactionId(),
+                                transactionEntity.getBorrowDate(),
+                                transactionEntity.getReturnDate(),
+                                transactionEntity.getDueDate(),
+                                null, // Do not include the full customer to avoid recursion
+                                null  // Map book if needed, else leave as null
+                        );
+                        transaction.setCustomerId(customerEntity.getCustomerId()); // Explicitly set customerId
+                        transaction.setBookId(transactionEntity.getBook() != null ? transactionEntity.getBook().getBookId() : null); // Set bookId if book exists
+
+                        customer.getTransactions().add(transaction); // Add to customer
+                    });
+
+                    return customer;
+                });
     }
 
     @Override

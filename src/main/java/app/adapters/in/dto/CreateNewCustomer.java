@@ -2,6 +2,7 @@ package app.adapters.in.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
@@ -11,6 +12,6 @@ public class CreateNewCustomer {
 
     @Email(message = "Email should be valid")
     private String email;
-
+    @NotNull(message = "Privileges is required")
     private boolean privileges;
 }

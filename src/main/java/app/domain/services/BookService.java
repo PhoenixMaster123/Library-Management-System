@@ -33,6 +33,9 @@ public class BookService {
         if (bookDao.searchBookByTitle(bookToCreate.getTitle()).isPresent()) {
             throw new IllegalArgumentException("Book with the same title already exists.");
         }
+        if(bookDao.searchByIsbn(bookToCreate.getIsbn()).isPresent()) {
+            throw new IllegalArgumentException("Book with the same isbn already exists.");
+        }
 
         // Resolve authors (fetch existing or create new)
         Set<Author> authors = bookToCreate.getAuthors().stream()

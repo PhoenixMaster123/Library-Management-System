@@ -2,6 +2,9 @@ package app.adapters.in.dto;
 
 import app.domain.models.Book;
 import app.domain.models.Customer;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,10 +14,17 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CreateNewTransaktion {
-    private UUID transactionId;
+    @NotNull(message = "Borrow date is required")
+    @FutureOrPresent(message = "Borrow date must be today or in the future")
     private LocalDate borrowDate;
-    private LocalDate returnDate;
+
+    @NotNull(message = "Due date is required")
+    @Future(message = "Due date must be in the future")
     private LocalDate dueDate;
+
+    @NotNull(message = "Customer ID is required")
     private UUID customerId;
+
+    @NotNull(message = "Book ID is required")
     private UUID bookId;
 }

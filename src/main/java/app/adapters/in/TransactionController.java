@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
@@ -85,38 +86,24 @@ public class TransactionController {
             @PathVariable UUID customerId,
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
-            @RequestParam Optional<String> sortBy
+            @RequestParam Optional<String> sortBy,
+            PagedResourcesAssembler<Transaction> assembler
     ) {
         PageRequest pageable = PageRequest.of(
-                page.orElse(0), // Default to page 0
-                size.orElse(10), // Default to 10 items per page
+                page.orElse(0),
+                size.orElse(10),
                 Sort.Direction.ASC,
-                sortBy.orElse("borrowDate") // Default sort field
+                sortBy.orElse("borrowDate")
         );
 
         Page<Transaction> transactionsPage = transactionService.viewBorrowingHistory(customerId, pageable);
 
-        // Convert to PagedModel with hypermedia links
-        PagedModel<EntityModel<Transaction>> pagedModel = PagedModel.of(
-                transactionsPage.map(transaction -> EntityModel.of(transaction,
+        // Use assembler to construct PagedModel with links
+        PagedModel<EntityModel<Transaction>> pagedModel = assembler.toModel(transactionsPage,
+                transaction -> EntityModel.of(transaction,
                         linkTo(methodOn(TransactionController.class).getTransactionById(transaction.getTransactionId())).withSelfRel()
-                )).getContent(),
-                new PagedModel.PageMetadata(
-                        transactionsPage.getSize(),
-                        transactionsPage.getNumber(),
-                        transactionsPage.getTotalElements(),
-                        transactionsPage.getTotalPages()
                 )
         );
-
-        // Add links for pagination
-        pagedModel.add(linkTo(methodOn(TransactionController.class).viewBorrowingHistory(customerId, Optional.of(page.orElse(0)), Optional.of(size.orElse(10)), sortBy)).withSelfRel());
-        if (transactionsPage.hasNext()) {
-            pagedModel.add(linkTo(methodOn(TransactionController.class).viewBorrowingHistory(customerId, Optional.of(page.orElse(0) + 1), Optional.of(size.orElse(10)), sortBy)).withRel("next"));
-        }
-        if (transactionsPage.hasPrevious()) {
-            pagedModel.add(linkTo(methodOn(TransactionController.class).viewBorrowingHistory(customerId, Optional.of(page.orElse(0) - 1), Optional.of(size.orElse(10)), sortBy)).withRel("previous"));
-        }
 
         return ResponseEntity.ok(pagedModel);
     }

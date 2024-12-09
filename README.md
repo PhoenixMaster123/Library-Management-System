@@ -5,13 +5,16 @@ The Library Management System is a Java-based backend application that facilitat
 ## Technologies and Dependencies Used
 
 - **Java**: Core programming language.
-- [Spring Boot](https://spring.io/projects/spring-boot) used to build hassle-free web applications and write REST APIs.
-- [Spring Data JPA (Hibernate)](https://spring.io/projects/spring-data-jpa) used to reduce the time of writing hardcoded SQL queries and instead allows writing much more readable and scalable code.
+- **Spring Boot** used to build hassle-free web applications and write REST APIs.
+- **Spring Data JPA (Hibernate)** used to reduce the time of writing hardcoded SQL queries and instead allows writing much more readable and scalable code.
+- **Spring Security** used for Authentication and Authorizations.
 - **MYSQL Database**: In-memory database for development and testing.
 - **Apache Maven**: Dependency management and build tool.
 - **Docker**: Containerization for deployment.
 - **JUnit**: Testing framework for unit and integration tests.
-- [Project Lombok](https://projectlombok.org/) reduces the time of writing Java boilerplate code.
+- **Lombok** reduces the time of writing Java boilerplate code.
+- **Cashing Strategy**
+- **Hypermedia Principle**
 
 ## Project Structure
 

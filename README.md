@@ -46,5 +46,27 @@ The Library Management System is a Java-based backend application that facilitat
    git clone https://github.com/your-username/LibraryManagementSystem.git
    cd LibraryManagementSystem
 2. **Build the Application**
- ```bash
-mvn clean install
+   ```bash
+   mvn clean install
+3. **Run the Application**
+   ```bash
+   mvn spring-boot:run
+**API Endpoints**
+
+**Book Endpoints**
+GET /books - Retrieve all books.
+POST /books - Add a new book.
+PUT /books/{id} - Update book details.
+DELETE /books/{id} - Delete a book.
+
+**Author Endpoints**
+GET /authors - Retrieve all authors.
+POST /authors - Add a new author.
+
+**Customer Endpoints**
+GET /customers - Retrieve all customers.
+POST /customers - Register a new customer.
+
+**Transaction Endpoints**
+POST /transactions/borrow - Borrow a book.
+POST /transactions/return - Return a book.

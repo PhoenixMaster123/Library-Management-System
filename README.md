@@ -4,17 +4,19 @@ The Library Management System is a Java-based backend application that facilitat
 
 ## Technologies and Dependencies Used
 
-- **Java**: Core programming language.
-- **Spring Boot** used to build hassle-free web applications and write REST APIs.
-- **Spring Data JPA (Hibernate)** used to reduce the time of writing hardcoded SQL queries and instead allows writing much more readable and scalable code.
-- **Spring Security** used for Authentication and Authorizations.
-- **MYSQL Database**: In-memory database for development and testing.
-- **Apache Maven**: Dependency management and build tool.
-- **Docker**: Containerization for deployment.
-- **JUnit**: Testing framework for unit and integration tests.
-- **Lombok** reduces the time of writing Java boilerplate code.
-- **Cashing Strategy**
-- **Hypermedia Principle**
+## Technologies and Dependencies Used
+
+- **[Java](https://www.oracle.com/java/)**: Core programming language.
+- **[Spring Boot](https://spring.io/projects/spring-boot)**: Used to build hassle-free web applications and write REST APIs.
+- **[Spring Data JPA (Hibernate)](https://spring.io/projects/spring-data-jpa)**: Reduces the time of writing hardcoded SQL queries, allowing for more readable and scalable code.
+- **[Spring Security](https://spring.io/projects/spring-security)**: Used for authentication and authorization.
+- **[MySQL Database](https://www.mysql.com/)**: Used as a persistence store for development and testing.
+- **[Apache Maven](https://maven.apache.org/)**: Dependency management and build tool.
+- **[Docker](https://www.docker.com/)**: Containerization for deployment.
+- **[JUnit](https://junit.org/)**: Testing framework for unit and integration tests.
+- **[Lombok](https://projectlombok.org/)**: Reduces the time of writing Java boilerplate code.
+- **Caching Strategy**: Enhances application performance by storing frequently accessed data in memory.
+- **Hypermedia Principle**: Improves REST API usability by providing navigable links between resources.
 
 ## Project Structure
 

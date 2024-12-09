@@ -45,6 +45,6 @@ The Library Management System is a Java-based backend application that facilitat
    ```bash
    git clone https://github.com/your-username/LibraryManagementSystem.git
    cd LibraryManagementSystem
-```bash
+2. **Build the Application**
+ ```bash
 mvn clean install
-

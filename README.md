@@ -2,10 +2,7 @@
 
 The Library Management System is a Java-based backend application that facilitates the management of books, authors, and transactions for a library. It provides functionalities to manage book catalogs, register customers, process borrowing and returning transactions, and view borrowing history.
 
-## Technologies Used
-
 ## Technologies and Dependencies Used
-
 
 - **Java**: Core programming language.
 - [Spring Boot](https://spring.io/projects/spring-boot) used to build hassle-free web applications and write REST APIs.

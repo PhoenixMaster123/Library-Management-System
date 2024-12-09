@@ -5,6 +5,10 @@ import app.domain.port.BookDao;
 import app.adapters.in.dto.CreateNewBook;
 import app.domain.models.Book;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,10 +27,12 @@ public class BookService {
 
     private final BookDao bookDao;
     private final AuthorService authorService;
+    private final CacheManager cacheManager;
 
-    public BookService(BookDao bookDao, AuthorService authorService) {
+    public BookService(BookDao bookDao, AuthorService authorService, CacheManager cacheManager) {
         this.bookDao = bookDao;
         this.authorService = authorService;
+        this.cacheManager = cacheManager;
     }
 
     public Book createNewBook(CreateNewBook bookToCreate) {
@@ -56,16 +62,25 @@ public class BookService {
         bookDao.addBook(book);
         return book;
     }
+    //@CachePut(value = "books", key = "#bookID") -> I need to return the book to use it
     public void updateBook(UUID bookID, Book book) {
         bookDao.updateBook(bookID, book);
+
+        // Update the cache manually
+        Cache cache = cacheManager.getCache("books");
+        if (cache != null) {
+            cache.put(bookID, book);
+        }
     }
 
+    @CacheEvict(value = "books", key = "#bookId")
     public void deleteBook(UUID bookId) {
         bookDao.deleteBook(bookId);
     }
     public Page<Book> getPaginatedBooks(Pageable pageable) {
         return bookDao.getPaginatedBooks(pageable);
     }
+    @Cacheable(value = "books", key = "#title", unless = "#result == null")
     public Optional<Book> searchBookByTitle(String title) {
         return bookDao.searchBookByTitle(title);
     }
@@ -74,9 +89,11 @@ public class BookService {
         return bookDao.searchBookByAuthors(author, isAvailable);
     }
 
+    @Cacheable(value = "books", key = "#isbn", unless = "#result == null")
     public Optional<Book> searchByIsbn(String isbn) {
         return bookDao.searchByIsbn(isbn);
     }
+    @Cacheable(value = "books", key = "#id", unless = "#result == null")
     public Optional<Book> searchById(UUID id) {
         return bookDao.searchBookById(id);
     }

@@ -9,6 +9,7 @@ import app.domain.models.Customer;
 import app.domain.models.Transaction;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -119,6 +120,7 @@ public class TransactionService {
     public Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable) {
         return transactionDao.viewBorrowingHistory(customerId, pageable);
     }
+    @Cacheable(value = "transactions", key = "#transactionId", unless = "#result == null")
     public Optional<Transaction> findById(UUID transactionId) {
         return transactionDao.findById(transactionId);
     }

@@ -6,6 +6,7 @@ import app.domain.models.Transaction;
 import app.domain.services.BookService;
 import app.domain.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -78,6 +79,7 @@ public class TransactionController {
     }
 
     @GetMapping(value = "/history/{customerId}", produces = "application/paginated-transactions-response+json;version=1")
+    @Cacheable(value = "transactions", key = "#customerId.toString() + '-' + #page.orElse(0) + '-' + #size.orElse(10) + '-' + #sortBy.orElse('borrowDate')")
     public ResponseEntity<PagedModel<EntityModel<Transaction>>> viewBorrowingHistory(
             @PathVariable UUID customerId,
             @RequestParam Optional<Integer> page,
@@ -104,6 +106,7 @@ public class TransactionController {
         return ResponseEntity.ok(pagedModel);
     }
     @GetMapping("/{transactionId}")
+    @Cacheable(value = "transactions", key = "#transactionId")
     public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID transactionId) {
         Optional<Transaction> transactionOpt = transactionService.findById(transactionId);
         return transactionOpt.map(ResponseEntity::ok)

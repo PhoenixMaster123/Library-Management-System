@@ -6,6 +6,7 @@ import app.domain.services.AuthorService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,27 +36,33 @@ public class AuthorController {
 
         return ResponseEntity.ok(author);
     }
-    @GetMapping(value = "/getAuthorByName/{name}", produces = "application/single-book-response+json;version=1")
+    @Cacheable(value = "authors", key = "#name")
+    @GetMapping(value = "/name/{name}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<Author> getAuthorByName(@NotNull @PathVariable String name) {
         return authorService.getAuthorByName(name)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
     // TODO: NEED TO BE TESTET
+    @Cacheable(value = "authors", key = "#page.toString() + '-' + #size.toString() + '-' + #sortBy.orElse('name')")
     @GetMapping(value = "/paginated", produces = "application/paginated-authors-response+json;version=1")
-    public ResponseEntity<Page<Author>> getPaginatedAuthors(
+    public ResponseEntity<Map<String, Object>> getPaginatedAuthors(
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
             @RequestParam Optional<String> sortBy
     ) {
         PageRequest pageable = PageRequest.of(
-                page.orElse(0),  // Default to page 0
-                size.orElse(10), // Default to 10 items per page
-                Sort.Direction.ASC,
-                sortBy.orElse("name") // Default sort field
-        );
+                page.orElse(0), size.orElse(10), Sort.Direction.ASC, sortBy.orElse("name"));
 
-        return ResponseEntity.ok(authorService.getPaginatedAuthors(pageable));
+        Page<Author> authors = authorService.getPaginatedAuthors(pageable);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", authors.getContent());
+        response.put("totalPages", authors.getTotalPages());
+        response.put("currentPage", authors.getNumber());
+        response.put("totalItems", authors.getTotalElements());
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping(value = "/updateAuthor/{authorId}", produces = "application/single-book-response+json;version=1")

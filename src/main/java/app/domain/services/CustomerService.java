@@ -5,9 +5,6 @@ import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.models.Customer;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,11 +27,9 @@ public class CustomerService {
         return customer;
     }
 
-    @Cacheable(value = "customers", key = "#id", unless = "#result == null")
     public Optional<Customer> findCustomerById(UUID id) {
         return customerDao.getCustomer(id);
     }
-    @Cacheable(value = "customers", key = "#customerName", unless = "#result == null")
     public Optional<Customer> findCustomerByName(String customerName) {
         return customerDao.getCustomerByName(customerName);
     }
@@ -50,14 +45,12 @@ public class CustomerService {
         customer.setPrivileges(privileges);
         customerDao.updatePrivileges(customer);
     }
-    @CachePut(value = "customers", key = "#customer.customerId")
     public void updateCustomer(Customer customer) {
         if (findCustomerById(customer.getCustomerId()).isEmpty()) {
             throw new EntityNotFoundException("Customer not found with ID: " + customer.getCustomerId());
         }
         customerDao.updateCustomer(customer);
     }
-    @CacheEvict(value = "customers", key = "#id")
     public void deleteCustomer(UUID id) {
         customerDao.deleteCustomer(id);
     }

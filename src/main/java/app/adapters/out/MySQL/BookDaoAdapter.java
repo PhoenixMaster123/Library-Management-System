@@ -79,6 +79,20 @@ public class BookDaoAdapter implements BookDao {
     public void deleteBook(UUID bookID) {
         Optional<BookEntity> existingBook = bookRepository.findById(bookID);
         if (existingBook.isPresent()) {
+            BookEntity book = existingBook.get();
+
+            // Remove the association between the book and authors
+            for (AuthorEntity author : book.getAuthors()) {
+                author.getBooks().remove(book);  // Assuming you have a 'books' field in the AuthorEntity
+            }
+
+            // Clear the authors' reference in the book entity (optional, depending on your use case)
+            book.setAuthors(new HashSet<>());
+
+            // Save the updated book (this step might not be necessary depending on your setup)
+            bookRepository.save(book);
+
+            // Now delete the book itself
             bookRepository.deleteById(bookID);
         } else {
             throw new BookNotFoundException("Book not found with ID: " + bookID);

@@ -30,7 +30,7 @@ The Library Management System is a Java-based backend application that facilitat
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/LibraryManagementSystem.git
+   git clone https://github.com/your-username/Library-Management-System.git
    cd LibraryManagementSystem
 2. **Build the Application**
    ```bash

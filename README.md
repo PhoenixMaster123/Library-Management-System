@@ -40,5 +40,5 @@ The Library Management System is a Java-based backend application that facilitat
    mvn spring-boot:run
 ## Backend Design
 **Entities** <br>
-Book having attributes:
+Book having attributes: <br>
 unique primary key bookId, title, isbn, publicationYear, availability, created_at, authors, transactions

@@ -33,14 +33,12 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
-    @Cacheable(value = "customers", key = "#customerId")
     @GetMapping(value = "/getCustomerById/{customerId}", produces = "application/single-customer-response+json;version=1")
     public ResponseEntity<Customer> getCustomerById(@NotNull @PathVariable UUID customerId) {
         return customerService.findCustomerById(customerId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    @Cacheable(value = "customers", key = "#customerName")
     @GetMapping(value = "/getCustomerByName/{customerName}", produces = "application/customer-response+json;version=1")
     public ResponseEntity<Customer> getCustomerByName(@NotNull @PathVariable String customerName) {
         return customerService.findCustomerByName(customerName)
@@ -48,7 +46,6 @@ public class CustomerController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
     // TODO: NEED TO BE TESTET
-    @Cacheable(value = "customers", key = "#page.toString() + '-' + #size.toString() + '-' + #sortBy.orElse('name')")
     @GetMapping(value = "/paginated", produces = "application/paginated-customers-response+json;version=1")
     public ResponseEntity<Page<Customer>> getPaginatedCustomers(
             @RequestParam Optional<Integer> page,

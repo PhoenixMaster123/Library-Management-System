@@ -36,7 +36,6 @@ public class AuthorController {
 
         return ResponseEntity.ok(author);
     }
-    @Cacheable(value = "authors", key = "#name")
     @GetMapping(value = "/name/{name}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<Author> getAuthorByName(@NotNull @PathVariable String name) {
         return authorService.getAuthorByName(name)
@@ -44,7 +43,6 @@ public class AuthorController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
     // TODO: NEED TO BE TESTET
-    @Cacheable(value = "authors", key = "#page.toString() + '-' + #size.toString() + '-' + #sortBy.orElse('name')")
     @GetMapping(value = "/paginated", produces = "application/paginated-authors-response+json;version=1")
     public ResponseEntity<Map<String, Object>> getPaginatedAuthors(
             @RequestParam Optional<Integer> page,
@@ -73,9 +71,10 @@ public class AuthorController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author updated successfully!");
     }
 
-    @DeleteMapping("/deleteAuthorById/{id}")
+    /*@DeleteMapping("/deleteAuthorById/{id}")
     public ResponseEntity<String> deleteAuthor(@NotNull @PathVariable UUID id) {
         authorService.deleteAuthor(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author deleted successfully!");
     }
+     */
 }

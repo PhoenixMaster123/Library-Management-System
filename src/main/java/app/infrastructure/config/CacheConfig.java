@@ -13,9 +13,4 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager("books", "authors", "customers", "transactions");
     }
-    /*@Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        return RedisCacheManager.builder(redisConnectionFactory).build();
-    }
-     */
 }

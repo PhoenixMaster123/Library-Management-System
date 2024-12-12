@@ -39,4 +39,7 @@ public class AuthorService {
     public Page<Author> getPaginatedAuthors(Pageable pageable) {
         return authorDao.getPaginatedAuthors(pageable);
     }
+    public Page<Author> searchAuthors(String query, Pageable pageable) {
+        return authorDao.searchAuthors(query, pageable);
+    }
 }

@@ -39,6 +39,12 @@ public class AuthorDaoAdapter implements AuthorDao {
                 authorEntity.getBio()
         ));
     }
+
+    @Override
+    public Page<Author> searchAuthors(String query, Pageable pageable) {
+        return authorRepository.findByNameContainingIgnoreCase(query, pageable).map(this::mapToAuthor);
+    }
+
     @Override
     public void updateAuthor(UUID authorId, Author newAuthor) {
         AuthorEntity authorEntity = authorRepository.findById(authorId)
@@ -56,24 +62,26 @@ public class AuthorDaoAdapter implements AuthorDao {
 
     @Override
     public Optional<Author> searchAuthorByName(String name) {
-        return authorRepository.findByName(name)
-                .map(authorEntity -> new Author(
-                        authorEntity.getAuthorId(),
-                        authorEntity.getName(),
-                        authorEntity.getBio(),
-                        authorEntity.getBooks() != null
-                                ? authorEntity.getBooks().stream()
-                                .map(bookEntity -> new Book(
-                                        bookEntity.getBookId(),
-                                        bookEntity.getTitle(),
-                                        bookEntity.getIsbn(),
-                                        bookEntity.getPublicationYear(),
-                                        bookEntity.isAvailability(),
-                                        bookEntity.getCreated_at(),
-                                        new HashSet<>() // Avoid circular references
-                                ))
-                                .collect(Collectors.toSet())
-                                : new HashSet<>()
-                ));
+        return authorRepository.findByName(name).map(this::mapToAuthor);
+    }
+    private Author mapToAuthor(AuthorEntity authorEntity) {
+        return new Author(
+                authorEntity.getAuthorId(),
+                authorEntity.getName(),
+                authorEntity.getBio(),
+                authorEntity.getBooks() != null
+                        ? authorEntity.getBooks().stream()
+                        .map(bookEntity -> new Book(
+                                bookEntity.getBookId(),
+                                bookEntity.getTitle(),
+                                bookEntity.getIsbn(),
+                                bookEntity.getPublicationYear(),
+                                bookEntity.isAvailability(),
+                                bookEntity.getCreated_at(),
+                                new HashSet<>() // Avoid circular references
+                        ))
+                        .collect(Collectors.toSet())
+                        : new HashSet<>()
+        );
     }
 }

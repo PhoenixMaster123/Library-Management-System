@@ -13,4 +13,5 @@ public interface AuthorDao {
     void deleteAuthor(UUID id);
     Optional<Author> searchAuthorByName(String name);
     Page<Author> getPaginatedAuthors(Pageable pageable);
+    Page<Author> searchAuthors(String query, Pageable pageable);
 }

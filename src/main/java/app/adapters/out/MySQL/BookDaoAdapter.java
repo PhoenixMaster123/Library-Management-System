@@ -111,11 +111,10 @@ public class BookDaoAdapter implements BookDao {
     }
 
     @Override
-    public List<Book> searchBookByAuthors(String author, boolean isAvailable) {
+    public Optional<Book> searchBookByAuthors(String author, boolean isAvailable) {
         List<BookEntity> entities = bookRepository.findBooksByAuthor(author, isAvailable);
         return entities.stream()
-                .map(this::mapToBook)
-                .collect(Collectors.toList());
+                .map(this::mapToBook).findFirst();
     }
 
     @Override

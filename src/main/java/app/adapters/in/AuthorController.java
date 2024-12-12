@@ -36,7 +36,7 @@ public class AuthorController {
 
         return ResponseEntity.ok(author);
     }
-    @GetMapping(value = "/name/{name}", produces = "application/single-book-response+json;version=1")
+    @GetMapping(value = "/{name}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<Author> getAuthorByName(@NotNull @PathVariable String name) {
         return authorService.getAuthorByName(name)
                 .map(ResponseEntity::ok)
@@ -63,7 +63,7 @@ public class AuthorController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping(value = "/updateAuthor/{authorId}", produces = "application/single-book-response+json;version=1")
+    @PutMapping(value = "/{authorId}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateAuthor(@NotNull @PathVariable UUID authorId, @Valid @RequestBody Author author) {
 
         author.setAuthorId(authorId);

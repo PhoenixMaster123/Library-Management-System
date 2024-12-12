@@ -33,13 +33,13 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
-    @GetMapping(value = "/getCustomerById/{customerId}", produces = "application/single-customer-response+json;version=1")
+    @GetMapping(value = "id/{customerId}", produces = "application/single-customer-response+json;version=1")
     public ResponseEntity<Customer> getCustomerById(@NotNull @PathVariable UUID customerId) {
         return customerService.findCustomerById(customerId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    @GetMapping(value = "/getCustomerByName/{customerName}", produces = "application/customer-response+json;version=1")
+    @GetMapping(value = "/name/{customerName}", produces = "application/customer-response+json;version=1")
     public ResponseEntity<Customer> getCustomerByName(@NotNull @PathVariable String customerName) {
         return customerService.findCustomerByName(customerName)
                 .map(ResponseEntity::ok)
@@ -62,7 +62,7 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getPaginatedCustomers(pageable));
     }
 
-    @PutMapping(value = "/updateCustomer/{id}", produces = "application/single-book-response+json;version=1")
+    @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateCustomer(@NotNull @PathVariable UUID id, @RequestBody Customer customer) {
         customer.setCustomerId(id);
         customerService.updateCustomer(customer);
@@ -76,7 +76,7 @@ public class CustomerController {
     }
 
 
-    @DeleteMapping("/deleteCustomer/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteCustomer(@NotNull @PathVariable UUID id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.status(HttpStatus.OK).body("Customer successfully deleted!");

@@ -38,33 +38,6 @@ public class BookController {
 
         return ResponseEntity.ok(book);
     }
-    @GetMapping(value = "{id}", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<?> getBookById(@NotNull @PathVariable("id") UUID id) {
-        Optional<Book> book = bookService.searchById(id);
-
-        if (book.isEmpty()) {
-            return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
-        }
-
-        return ResponseEntity.ok(book.get());
-    }
-    @GetMapping(value = "/title/{title}", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<?> getBookByTitle(@NotNull @PathVariable("title") String title) {
-        //return ResponseEntity.ok(bookService.searchBookByTitle(title));
-        Optional<Book> book = bookService.searchBookByTitle(title);
-
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))  // Cache for 60 seconds
-                .body(book);
-    }
-    @GetMapping(value = "/author/{author}", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<?> getBookByAuthor(@NotNull @PathVariable("author") String author) {
-        return ResponseEntity.ok(bookService.searchBookByAuthors(author, true));
-    }
-    @GetMapping(value = "/isbn/{isbn}",produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<?> getBookByIsbn(@NotNull @PathVariable("isbn") String isbn) {
-        return ResponseEntity.ok(bookService.searchByIsbn(isbn));
-    }
     @GetMapping(value = "/paginated", produces = "application/paginated-books-response+json;version=1")
     public ResponseEntity<EntityModel<Page<Book>>> getPaginatedBooks(
             @RequestParam Optional<Integer> page,
@@ -113,26 +86,7 @@ public class BookController {
 
         return ResponseEntity.ok().headers(headers).body(resource);
     }
-    // General search
-    @GetMapping(value = "/search/paginated/{query}", produces = "application/paginated-books-response+json;version=1")
-    public ResponseEntity<Page<Book>> searchBooksByPath(
-            @PathVariable String query,
-            @RequestParam Optional<Integer> page,
-            @RequestParam Optional<Integer> size,
-            @RequestParam Optional<String> sortBy
-    ) {
-        PageRequest pageable = PageRequest.of(
-                page.orElse(0),  // Default to page 0
-                size.orElse(10), // Default to 10 items per page
-                Sort.Direction.ASC,
-                sortBy.orElse("title") // Default sort field
-        );
-
-        Page<Book> books = bookService.searchBooks(query, pageable);
-        return ResponseEntity.ok(books);
-    }
-
-    @PutMapping(value = "/updateBook/{id}", produces = "application/single-book-response+json;version=1")
+    @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateBook(@NotNull @PathVariable("id") UUID id, @NotNull @RequestBody Book book) {
         Optional<Book> existingBook = bookService.searchById(id);
         if (existingBook.isEmpty()) {
@@ -142,9 +96,87 @@ public class BookController {
         bookService.updateBook(id, book);
         return new ResponseEntity<>("Book updated successfully", HttpStatus.OK);
     }
-    @DeleteMapping("/deleteBook/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBook(@NotNull @PathVariable("id") UUID bookID) {
         bookService.deleteBook(bookID);
         return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
+    }
+    @GetMapping(produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<?> getBook(
+            @RequestParam(required = false) UUID id,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String isbn,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String query,
+            @RequestParam Optional<Integer> page,
+            @RequestParam Optional<Integer> size,
+            @RequestParam Optional<String> sortBy
+    ) {
+        if (id != null) {
+            Optional<Book> book = bookService.searchById(id);
+            if (book.isEmpty()) {
+                return new ResponseEntity<>("Book not found", HttpStatus.NOT_FOUND);
+            }
+
+            EntityModel<Book> resource = EntityModel.of(book.get());
+            resource.add(linkTo(methodOn(BookController.class).getBook(id, null, null, null, null, Optional.empty(), Optional.empty(), Optional.empty())).withSelfRel());
+            resource.add(linkTo(methodOn(BookController.class).updateBook(id, book.get())).withRel("update"));
+            resource.add(linkTo(methodOn(BookController.class).deleteBook(id)).withRel("delete"));
+
+            return ResponseEntity.ok(resource);
+        } else if (title != null) {
+            Optional<Book> book = bookService.searchBookByTitle(title);
+            if (book.isEmpty()) {
+                return new ResponseEntity<>("Book with the given title not found", HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.ok(book);
+        } else if (isbn != null) {
+            Optional<Book> book = bookService.searchByIsbn(isbn);
+            if (book.isEmpty()) {
+                return new ResponseEntity<>("Book with the given ISBN not found", HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.ok(book);
+        } else if (author != null) {
+            Optional<Book> book = bookService.searchBookByAuthors(author, true);
+            if (book.isEmpty()) {
+                return new ResponseEntity<>("No books found by the given author", HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.ok(book);
+        } else if (query != null) {
+            int currentPage = page.orElse(0);
+            int pageSize = size.orElse(10);
+            String sortField = sortBy.orElse("title");
+
+            PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
+            Page<Book> books = bookService.searchBooks(query, pageable);
+
+            if (books.isEmpty()) {
+                return new ResponseEntity<>("No books found for the given query", HttpStatus.NOT_FOUND);
+            }
+
+            EntityModel<Page<Book>> resource = EntityModel.of(books);
+            resource.add(linkTo(methodOn(BookController.class)
+                    .getBook(null, null, null, null, query, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField)))
+                    .withSelfRel());
+
+            if (books.hasPrevious()) {
+                resource.add(linkTo(methodOn(BookController.class)
+                        .getBook(null, null, null, null, query, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField)))
+                        .withRel("prev"));
+            }
+
+            if (books.hasNext()) {
+                resource.add(linkTo(methodOn(BookController.class)
+                        .getBook(null, null, null, null, query, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField)))
+                        .withRel("next"));
+            }
+
+            return ResponseEntity.ok(resource);
+        } else {
+            return new ResponseEntity<>("No search criteria provided", HttpStatus.BAD_REQUEST);
+        }
     }
 }

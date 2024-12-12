@@ -69,7 +69,7 @@ public class BookService {
         return bookDao.searchBookByTitle(title);
     }
 
-    public List<Book> searchBookByAuthors(String author, boolean isAvailable) {
+    public Optional<Book> searchBookByAuthors(String author, boolean isAvailable) {
         return bookDao.searchBookByAuthors(author, isAvailable);
     }
     public Optional<Book> searchByIsbn(String isbn) {

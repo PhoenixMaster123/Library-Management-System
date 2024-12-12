@@ -66,7 +66,7 @@ public class AuthorController {
         }
 
         // Construct the response map
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new LinkedHashMap<>();
         response.put("data", authors.getContent());
         response.put("totalPages", authors.getTotalPages());
         response.put("currentPage", authors.getNumber());

@@ -6,7 +6,6 @@ import app.domain.services.CustomerService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -14,8 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RestController
 @RequestMapping("/customers")
@@ -45,21 +48,55 @@ public class CustomerController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    // TODO: NEED TO BE TESTET
     @GetMapping(value = "/paginated", produces = "application/paginated-customers-response+json;version=1")
-    public ResponseEntity<Page<Customer>> getPaginatedCustomers(
+    public ResponseEntity<Map<String, Object>> getPaginatedCustomers(
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
-            @RequestParam Optional<String> sortBy
+            @RequestParam Optional<String> sortBy,
+            @RequestParam Optional<String> query
     ) {
-        PageRequest pageable = PageRequest.of(
-                page.orElse(0),  // Default to page 0
-                size.orElse(10), // Default to 10 items per page
-                Sort.Direction.ASC,
-                sortBy.orElse("name") // Default sort field
-        );
+        int currentPage = page.orElse(0);
+        int pageSize = size.orElse(1);
+        String sortField = sortBy.orElse("name");
 
-        return ResponseEntity.ok(customerService.getPaginatedCustomers(pageable));
+        PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
+        Page<Customer> customers;
+
+        if (query.isPresent() && !query.get().isBlank()) {
+            customers = customerService.searchCustomer(query.get(), pageable);
+        } else {
+            customers = customerService.getPaginatedCustomers(pageable);
+        }
+
+        if (customers.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "No customers found"));
+        }
+
+        // Use LinkedHashMap to ensure field order in the response
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("totalItems", customers.getTotalElements());
+        response.put("data", customers.getContent());
+        response.put("totalPages", customers.getTotalPages());
+        response.put("currentPage", customers.getNumber());
+
+        // Add pagination links at the end of the response
+        response.put("self", generatePaginatedCustomerLink(currentPage, pageSize, sortField));
+        if (customers.hasPrevious()) {
+            response.put("prev", generatePaginatedCustomerLink(currentPage - 1, pageSize, sortField));
+        }
+        if (customers.hasNext()) {
+            response.put("next", generatePaginatedCustomerLink(currentPage + 1, pageSize, sortField));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+    private String generatePaginatedCustomerLink(int page, int size, String sortBy) {
+        return linkTo(CustomerController.class).slash("paginated").toUriComponentsBuilder()
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("sortBy", sortBy)
+                .toUriString();
     }
 
     @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")

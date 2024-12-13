@@ -96,10 +96,6 @@ public class AuthorController {
         }
         return baseUri;
     }
-
-
-
-
     @PutMapping(value = "/{authorId}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateAuthor(@NotNull @PathVariable UUID authorId, @Valid @RequestBody Author author) {
 

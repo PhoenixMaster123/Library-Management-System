@@ -1,5 +1,4 @@
 package app.domain.port;
-
 import app.domain.models.Customer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +15,5 @@ public interface CustomerDao {
     void updateCustomer(Customer customer);
     void deleteCustomer(UUID id);
     Page<Customer> getPaginatedCustomers(Pageable pageable);
+    Page<Customer> searchCustomer(String query, Pageable pageable);
 }

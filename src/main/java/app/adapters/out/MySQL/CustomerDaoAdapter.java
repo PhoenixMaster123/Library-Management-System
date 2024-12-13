@@ -1,5 +1,6 @@
 package app.adapters.out.MySQL;
 
+import app.adapters.out.MySQL.entity.BookEntity;
 import app.adapters.out.MySQL.entity.CustomerEntity;
 import app.adapters.out.MySQL.repositories.CustomRepository;
 import app.domain.models.Transaction;
@@ -46,45 +47,48 @@ public class CustomerDaoAdapter implements CustomerDao {
         ));
     }
     @Override
+    public Page<Customer> searchCustomer(String query, Pageable pageable) {
+        String lowerQuery = query.toLowerCase();
+        // Filter and paginate using a repository query
+        Page<CustomerEntity> bookEntities = customRepository.searchByQuery(lowerQuery, pageable);
+
+        return bookEntities.map(this::mapCustomerEntityToCustomer);
+    }
+
+    @Override
     public Optional<Customer> getCustomer(UUID id) {
         return customRepository.findById(id)
-                .map(customerEntity -> {
-                    // Map CustomerEntity to Customer
-                    Customer customer = new Customer(
-                            customerEntity.getCustomerId(),
-                            customerEntity.getName(),
-                            customerEntity.getEmail(),
-                            customerEntity.isPrivileges()
-                    );
-
-                    // Map transactions and add them to the customer
-                    customerEntity.getTransactions().forEach(transactionEntity -> {
-                        Transaction transaction = new Transaction(
-                                transactionEntity.getTransactionId(),
-                                transactionEntity.getBorrowDate(),
-                                transactionEntity.getReturnDate(),
-                                transactionEntity.getDueDate(),
-                                null, // Do not include the full customer to avoid recursion
-                                null  // Map book if needed, else leave as null
-                        );
-                        transaction.setCustomerId(customerEntity.getCustomerId()); // Explicitly set customerId
-                        transaction.setBookId(transactionEntity.getBook() != null ? transactionEntity.getBook().getBookId() : null); // Set bookId if book exists
-
-                        customer.getTransactions().add(transaction); // Add to customer
-                    });
-
-                    return customer;
-                });
+                .map(this::mapCustomerEntityToCustomer);
     }
     @Override
     public Optional<Customer> getCustomerByName(String name) {
         return customRepository.findByName(name)
-                .map(customerEntity -> new Customer(
-                        customerEntity.getCustomerId(),
-                        customerEntity.getName(),
-                        customerEntity.getEmail(),
-                        customerEntity.isPrivileges()
-                ));
+                .map(this::mapCustomerEntityToCustomer);
+    }
+    private Customer mapCustomerEntityToCustomer(CustomerEntity customerEntity) {
+        Customer customer = new Customer(
+                customerEntity.getCustomerId(),
+                customerEntity.getName(),
+                customerEntity.getEmail(),
+                customerEntity.isPrivileges()
+        );
+
+        customerEntity.getTransactions().forEach(transactionEntity -> {
+            Transaction transaction = new Transaction(
+                    transactionEntity.getTransactionId(),
+                    transactionEntity.getBorrowDate(),
+                    transactionEntity.getReturnDate(),
+                    transactionEntity.getDueDate(),
+                    null,
+                    null
+            );
+            transaction.setCustomerId(customerEntity.getCustomerId());
+            transaction.setBookId(transactionEntity.getBook() != null ? transactionEntity.getBook().getBookId() : null);
+
+            customer.getTransactions().add(transaction);
+        });
+
+        return customer;
     }
 
     @Override

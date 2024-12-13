@@ -1,5 +1,6 @@
 package app.domain.services;
 
+import app.domain.models.Author;
 import app.domain.port.CustomerDao;
 import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.models.Customer;
@@ -35,6 +36,9 @@ public class CustomerService {
     }
     public Page<Customer> getPaginatedCustomers(Pageable pageable) {
         return customerDao.getPaginatedCustomers(pageable);
+    }
+    public Page<Customer> searchCustomer(String query, Pageable pageable) {
+        return customerDao.searchCustomer(query, pageable);
     }
 
     public void updatePrivileges(UUID id, boolean privileges) {

@@ -1,6 +1,5 @@
 package app.domain.services;
 
-import app.domain.models.Author;
 import app.domain.port.CustomerDao;
 import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.models.Customer;

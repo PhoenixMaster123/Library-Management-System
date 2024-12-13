@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,30 +80,51 @@ public class TransactionController {
     }
 
     @GetMapping(value = "/history/{customerId}", produces = "application/paginated-transactions-response+json;version=1")
-    public ResponseEntity<PagedModel<EntityModel<Transaction>>> viewBorrowingHistory(
+    public ResponseEntity<Map<String, Object>> viewBorrowingHistory(
             @PathVariable UUID customerId,
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
-            @RequestParam Optional<String> sortBy,
-            PagedResourcesAssembler<Transaction> assembler
+            @RequestParam Optional<String> sortBy
     ) {
-        PageRequest pageable = PageRequest.of(
-                page.orElse(0),
-                size.orElse(10),
-                Sort.Direction.ASC,
-                sortBy.orElse("borrowDate")
-        );
+        int currentPage = page.orElse(0);
+        int pageSize = size.orElse(1);
+        String sortField = sortBy.orElse("borrowDate");
 
+        PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Transaction> transactionsPage = transactionService.viewBorrowingHistory(customerId, pageable);
 
-        // Use assembler to construct PagedModel with links
-        PagedModel<EntityModel<Transaction>> pagedModel = assembler.toModel(transactionsPage,
-                transaction -> EntityModel.of(transaction,
-                        linkTo(methodOn(TransactionController.class).getTransactionById(transaction.getTransactionId())).withSelfRel()
-                )
-        );
+        if (transactionsPage.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "No transactions found for this customer"));
+        }
 
-        return ResponseEntity.ok(pagedModel);
+        // Use LinkedHashMap to ensure field order in the response
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("totalItems", transactionsPage.getTotalElements());
+        response.put("data", transactionsPage.getContent());
+        response.put("totalPages", transactionsPage.getTotalPages());
+        response.put("currentPage", transactionsPage.getNumber());
+
+        // Add pagination links
+        response.put("self", generatePaginatedHistoryLink(customerId, currentPage, pageSize, sortField));
+        if (transactionsPage.hasPrevious()) {
+            response.put("prev", generatePaginatedHistoryLink(customerId, currentPage - 1, pageSize, sortField));
+        }
+        if (transactionsPage.hasNext()) {
+            response.put("next", generatePaginatedHistoryLink(customerId, currentPage + 1, pageSize, sortField));
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    private String generatePaginatedHistoryLink(UUID customerId, int page, int size, String sortBy) {
+        return linkTo(methodOn(TransactionController.class)
+                .viewBorrowingHistory(customerId, Optional.of(page), Optional.of(size), Optional.of(sortBy)))
+                .toUriComponentsBuilder()
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .queryParam("sortBy", sortBy)
+                .toUriString();
     }
     @GetMapping("/{transactionId}")
     public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID transactionId) {

@@ -37,7 +37,7 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
     @GetMapping(value = "/paginated", produces = "application/paginated-books-response+json;version=1")
-    public ResponseEntity<EntityModel<Page<Book>>> getPaginatedBooks(
+    public ResponseEntity<EntityModel<Page<Book>>> getAllBooks(
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
             @RequestParam Optional<String> sortBy
@@ -52,34 +52,34 @@ public class BookController {
         // Create self link with actual values
         EntityModel<Page<Book>> resource = EntityModel.of(books);
         resource.add(linkTo(methodOn(BookController.class)
-                .getPaginatedBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField)))
+                .getAllBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField)))
                 .withSelfRel());
 
         // Add previous link if there is a previous page
         if (books.hasPrevious()) {
             resource.add(linkTo(methodOn(BookController.class)
-                    .getPaginatedBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField)))
+                    .getAllBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField)))
                     .withRel("prev"));
         }
 
         // Add next link if there is a next page
         if (books.hasNext()) {
             resource.add(linkTo(methodOn(BookController.class)
-                    .getPaginatedBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField)))
+                    .getAllBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField)))
                     .withRel("next"));
         }
 
         // Add links to response headers instead of body
         HttpHeaders headers = new HttpHeaders();
         headers.add("Link", "<" + linkTo(methodOn(BookController.class)
-                .getPaginatedBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+                .getAllBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
         if (books.hasPrevious()) {
             headers.add("Link", "<" + linkTo(methodOn(BookController.class)
-                    .getPaginatedBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+                    .getAllBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
         }
         if (books.hasNext()) {
             headers.add("Link", "<" + linkTo(methodOn(BookController.class)
-                    .getPaginatedBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
+                    .getAllBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
         return ResponseEntity.ok().headers(headers).body(resource);

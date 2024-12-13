@@ -50,9 +50,9 @@ public class CustomerDaoAdapter implements CustomerDao {
     public Optional<Customer> searchCustomer(String query) {
         String lowerQuery = query.toLowerCase();
         // Filter and paginate using a repository query
-        Optional<CustomerEntity> bookEntities = customRepository.searchByQuery(lowerQuery);
+        Optional<CustomerEntity> customerEntity = customRepository.searchByQuery(lowerQuery);
 
-        return bookEntities.map(this::mapCustomerEntityToCustomer);
+        return customerEntity.map(this::mapCustomerEntityToCustomer);
     }
 
     @Override

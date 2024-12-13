@@ -82,7 +82,7 @@ public class CustomerController {
         response.put("totalPages", customers.getTotalPages());
         response.put("currentPage", customers.getNumber());
 
-        // Add pagination links at the end of the response
+        // Add pagination links at the end of the response (In the body)
         response.put("self", generatePaginatedCustomerLink(currentPage, pageSize, sortField));
         if (customers.hasPrevious()) {
             response.put("prev", generatePaginatedCustomerLink(currentPage - 1, pageSize, sortField));

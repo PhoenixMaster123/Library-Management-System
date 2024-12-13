@@ -16,8 +16,6 @@ import java.util.UUID;
 @Repository
 public interface CustomRepository extends JpaRepository<CustomerEntity, UUID> {
     Optional<CustomerEntity> findByName(String name);
-    Page<CustomerEntity> findByNameContainingIgnoreCase(String query, Pageable pageable);
-
     @Query("SELECT c FROM CustomerEntity c LEFT JOIN c.transactions t " +
             "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :query, '%')) " +

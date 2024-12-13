@@ -7,10 +7,12 @@ import app.domain.models.Book;
 import app.domain.port.AuthorDao;
 import app.infrastructure.exceptions.AuthorNotFoundException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,16 +35,18 @@ public class AuthorDaoAdapter implements AuthorDao {
     }
     @Override
     public Page<Author> getPaginatedAuthors(Pageable pageable) {
-        return authorRepository.findAll(pageable).map(authorEntity -> new Author(
-                authorEntity.getAuthorId(),
-                authorEntity.getName(),
-                authorEntity.getBio()
-        ));
+        List<AuthorEntity> authorEntities = authorRepository.findAllAuthorsWithBooks(pageable);
+
+        List<Author> authors = authorEntities.stream()
+                .map(this::mapToAuthor)
+                .toList();
+
+        return new PageImpl<>(authors, pageable, authorEntities.size());
     }
 
     @Override
-    public Page<Author> searchAuthors(String query, Pageable pageable) {
-        return authorRepository.findByNameContainingIgnoreCase(query, pageable).map(this::mapToAuthor);
+    public Optional<Author> searchAuthors(String query) {
+        return authorRepository.searchAuthorsByQuery(query).map(this::mapToAuthor);
     }
 
     @Override
@@ -63,6 +67,10 @@ public class AuthorDaoAdapter implements AuthorDao {
     @Override
     public Optional<Author> searchAuthorByName(String name) {
         return authorRepository.findByName(name).map(this::mapToAuthor);
+    }
+    @Override
+    public Optional<Author> searchAuthorByID(UUID id) {
+        return authorRepository.findById(id).map(this::mapToAuthor);
     }
     private Author mapToAuthor(AuthorEntity authorEntity) {
         return new Author(

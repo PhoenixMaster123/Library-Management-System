@@ -12,6 +12,7 @@ public interface AuthorDao {
     void updateAuthor(UUID authorId, Author author);
     void deleteAuthor(UUID id);
     Optional<Author> searchAuthorByName(String name);
+    Optional<Author> searchAuthorByID(UUID id);
     Page<Author> getPaginatedAuthors(Pageable pageable);
-    Page<Author> searchAuthors(String query, Pageable pageable);
+    Optional<Author> searchAuthors(String query);
 }

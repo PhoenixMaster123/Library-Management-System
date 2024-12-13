@@ -37,8 +37,8 @@ public class CustomerService {
     public Page<Customer> getPaginatedCustomers(Pageable pageable) {
         return customerDao.getPaginatedCustomers(pageable);
     }
-    public Page<Customer> searchCustomer(String query, Pageable pageable) {
-        return customerDao.searchCustomer(query, pageable);
+    public Optional<Customer> searchCustomer(String query) {
+        return customerDao.searchCustomer(query);
     }
 
     public void updatePrivileges(UUID id, boolean privileges) {

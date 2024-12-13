@@ -47,10 +47,10 @@ public class CustomerDaoAdapter implements CustomerDao {
         ));
     }
     @Override
-    public Page<Customer> searchCustomer(String query, Pageable pageable) {
+    public Optional<Customer> searchCustomer(String query) {
         String lowerQuery = query.toLowerCase();
         // Filter and paginate using a repository query
-        Page<CustomerEntity> bookEntities = customRepository.searchByQuery(lowerQuery, pageable);
+        Optional<CustomerEntity> bookEntities = customRepository.searchByQuery(lowerQuery);
 
         return bookEntities.map(this::mapCustomerEntityToCustomer);
     }

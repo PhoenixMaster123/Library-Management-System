@@ -36,37 +36,39 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
-    @GetMapping(value = "id/{customerId}", produces = "application/single-customer-response+json;version=1")
-    public ResponseEntity<Customer> getCustomerById(@NotNull @PathVariable UUID customerId) {
-        return customerService.findCustomerById(customerId)
-                .map(ResponseEntity::ok)
+    @GetMapping(value = "/search", produces = "application/single-customer-response+json;version=1")
+    public ResponseEntity<Customer> getCustomer(
+            @RequestParam(required = false) UUID customerId,
+            @RequestParam(required = false) String customerName,
+            @RequestParam(required = false) String query) {
+        Optional<Customer> customer;
+
+        if (customerId != null) {
+            customer = customerService.findCustomerById(customerId);
+        } else if (customerName != null && !customerName.isBlank()) {
+            customer = customerService.findCustomerByName(customerName);
+        } else if (query != null && !query.isBlank()) {
+            customer = customerService.searchCustomer(query);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        return customer.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
-    @GetMapping(value = "/name/{customerName}", produces = "application/customer-response+json;version=1")
-    public ResponseEntity<Customer> getCustomerByName(@NotNull @PathVariable String customerName) {
-        return customerService.findCustomerByName(customerName)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
+
     @GetMapping(value = "/paginated", produces = "application/paginated-customers-response+json;version=1")
-    public ResponseEntity<Map<String, Object>> getPaginatedCustomers(
+    public ResponseEntity<Map<String, Object>> getAllCustomers(
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
-            @RequestParam Optional<String> sortBy,
-            @RequestParam Optional<String> query
+            @RequestParam Optional<String> sortBy
     ) {
         int currentPage = page.orElse(0);
         int pageSize = size.orElse(1);
         String sortField = sortBy.orElse("name");
 
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
-        Page<Customer> customers;
-
-        if (query.isPresent() && !query.get().isBlank()) {
-            customers = customerService.searchCustomer(query.get(), pageable);
-        } else {
-            customers = customerService.getPaginatedCustomers(pageable);
-        }
+        Page<Customer> customers = customerService.getPaginatedCustomers(pageable);
 
         if (customers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -91,6 +93,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
+
     private String generatePaginatedCustomerLink(int page, int size, String sortBy) {
         return linkTo(CustomerController.class).slash("paginated").toUriComponentsBuilder()
                 .queryParam("page", page)

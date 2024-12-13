@@ -23,5 +23,5 @@ public interface CustomRepository extends JpaRepository<CustomerEntity, UUID> {
             "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR CAST(c.customerId AS string) LIKE CONCAT('%', :query, '%') " +
             "OR CAST(t.transactionId AS string) LIKE CONCAT('%', :query, '%')")
-    Page<CustomerEntity> searchByQuery(@Param("query") String query, Pageable pageable);
+    Optional<CustomerEntity> searchByQuery(@Param("query") String query);
 }

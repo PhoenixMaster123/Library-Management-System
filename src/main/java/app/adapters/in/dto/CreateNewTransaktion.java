@@ -2,6 +2,7 @@ package app.adapters.in.dto;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class CreateNewTransaktion {
     @NotNull(message = "Borrow date is required")
     @FutureOrPresent(message = "Borrow date must be today or in the future")

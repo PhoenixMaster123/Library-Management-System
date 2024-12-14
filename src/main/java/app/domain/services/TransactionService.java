@@ -38,6 +38,9 @@ public class TransactionService {
         if (newTransaktion.getDueDate().isBefore(newTransaktion.getBorrowDate())) {
             throw new IllegalArgumentException("Due date must be after borrow date.");
         }
+        if (newTransaktion.getBorrowDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Borrow date must not be in the past.");
+        }
 
         // Fetch customer and book
         Customer customer = customerDao.getCustomer(newTransaktion.getCustomerId())
@@ -121,5 +124,47 @@ public class TransactionService {
     }
     public Optional<Transaction> findById(UUID transactionId) {
         return transactionDao.findById(transactionId);
+    }
+
+    public void borrowBookWithDates(UUID customerId, UUID bookId, LocalDate borrowDate) {
+        Book book = bookDao.searchBookById(bookId)
+                .orElseThrow(() -> new IllegalStateException("Book not found"));
+
+        if (!book.isAvailable()) {
+            throw new IllegalArgumentException("Book is already borrowed");
+        }
+
+        Customer customer = customerDao.getCustomer(customerId)
+                .orElseThrow(() -> new IllegalStateException("Customer not found"));
+
+        // Create the transaction with custom dates
+        Transaction transaction = new Transaction();
+        transaction.setTransactionId(UUID.randomUUID());
+        transaction.setBorrowDate(borrowDate);  // Borrow date
+        transaction.setDueDate(borrowDate.plusWeeks(2));
+        transaction.setCustomer(customer);
+        transaction.setBook(book);
+
+        book.setAvailable(false); // Mark book as borrowed
+        bookDao.updateBook(bookId, book);
+        transactionDao.addTransaction(transaction);
+    }
+    public String returnBookWithDates(UUID bookId,LocalDate returnDate) {
+        List<Transaction> transactions = transactionDao.getTransactionsForBook(new Book(bookId, null, null, 0, false, null));
+
+        if (transactions.isEmpty()) {
+            throw new EntityNotFoundException("No transaction found for the given book.");
+        }
+
+        transactions.forEach(transaction -> {
+            if (transaction.getReturnDate() == null) { // Update only active transactions
+                transaction.setReturnDate(returnDate);
+                transaction.getBook().setAvailable(true);
+                transactionDao.updateTransaction(transaction);
+                bookDao.updateBook(transaction.getBook().getBookId(), transaction.getBook());
+                System.out.println("Returned book for transaction: " + transaction.getTransactionId());
+            }
+        });
+        return "Book transactions updated successfully.";
     }
 }

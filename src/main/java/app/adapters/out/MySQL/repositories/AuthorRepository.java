@@ -1,6 +1,7 @@
 package app.adapters.out.MySQL.repositories;
 
 import app.adapters.out.MySQL.entity.AuthorEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,8 +16,11 @@ import java.util.UUID;
 public interface AuthorRepository extends JpaRepository<AuthorEntity, UUID> {
     Optional<AuthorEntity> findByName(String name);
 
-    @Query("SELECT a FROM AuthorEntity a LEFT JOIN FETCH a.books")
-    List<AuthorEntity> findAllAuthorsWithBooks(Pageable pageable);
+    @Query(
+            value = "SELECT a FROM AuthorEntity a LEFT JOIN FETCH a.books",
+            countQuery = "SELECT COUNT(a) FROM AuthorEntity a"
+    )
+    Page<AuthorEntity> findAllAuthorsWithBooks(Pageable pageable);
 
     @Query("SELECT a FROM AuthorEntity a LEFT JOIN a.books b " +
             "WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%')) " +

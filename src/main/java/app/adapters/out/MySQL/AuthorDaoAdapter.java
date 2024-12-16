@@ -35,13 +35,13 @@ public class AuthorDaoAdapter implements AuthorDao {
     }
     @Override
     public Page<Author> getPaginatedAuthors(Pageable pageable) {
-        List<AuthorEntity> authorEntities = authorRepository.findAllAuthorsWithBooks(pageable);
+        Page<AuthorEntity> authorEntities = authorRepository.findAllAuthorsWithBooks(pageable);
 
         List<Author> authors = authorEntities.stream()
                 .map(this::mapToAuthor)
                 .toList();
 
-        return new PageImpl<>(authors, pageable, authorEntities.size());
+        return new PageImpl<>(authors, pageable, authorEntities.getTotalElements());
     }
 
     @Override

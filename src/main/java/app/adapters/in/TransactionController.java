@@ -9,9 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -87,45 +85,42 @@ public class TransactionController {
             @RequestParam Optional<String> sortBy
     ) {
         int currentPage = page.orElse(0);
-        int pageSize = size.orElse(1);
+        int pageSize = size.orElse(5);
         String sortField = sortBy.orElse("borrowDate");
 
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Transaction> transactionsPage = transactionService.viewBorrowingHistory(customerId, pageable);
 
+        // Add pagination links to headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("self", "<" + linkTo(methodOn(TransactionController.class)
+                .viewBorrowingHistory(customerId, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
+        if (transactionsPage.hasPrevious()) {
+            headers.add("prev", "<" + linkTo(methodOn(TransactionController.class)
+                    .viewBorrowingHistory(customerId, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+        }
+        if (transactionsPage.hasNext()) {
+            headers.add("next", "<" + linkTo(methodOn(TransactionController.class)
+                    .viewBorrowingHistory(customerId, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
+        }
+
+        // Build response body
         if (transactionsPage.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "No transactions found for this customer"));
         }
 
-        // Use LinkedHashMap to ensure field order in the response
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("totalItems", transactionsPage.getTotalElements());
         response.put("data", transactionsPage.getContent());
         response.put("totalPages", transactionsPage.getTotalPages());
         response.put("currentPage", transactionsPage.getNumber());
+        response.put("totalItems", transactionsPage.getTotalElements());
 
-        // Add pagination links
-        response.put("self", generatePaginatedHistoryLink(customerId, currentPage, pageSize, sortField));
-        if (transactionsPage.hasPrevious()) {
-            response.put("prev", generatePaginatedHistoryLink(customerId, currentPage - 1, pageSize, sortField));
-        }
-        if (transactionsPage.hasNext()) {
-            response.put("next", generatePaginatedHistoryLink(customerId, currentPage + 1, pageSize, sortField));
-        }
-
-        return ResponseEntity.ok(response);
+        // Return the response with headers
+        return ResponseEntity.ok().headers(headers).body(response);
     }
 
-    private String generatePaginatedHistoryLink(UUID customerId, int page, int size, String sortBy) {
-        return linkTo(methodOn(TransactionController.class)
-                .viewBorrowingHistory(customerId, Optional.of(page), Optional.of(size), Optional.of(sortBy)))
-                .toUriComponentsBuilder()
-                .queryParam("page", page)
-                .queryParam("size", size)
-                .queryParam("sortBy", sortBy)
-                .toUriString();
-    }
     @GetMapping("/{transactionId}")
     public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID transactionId) {
         Optional<Transaction> transactionOpt = transactionService.findById(transactionId);

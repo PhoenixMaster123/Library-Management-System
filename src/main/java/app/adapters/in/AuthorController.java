@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/authors")
@@ -63,43 +64,47 @@ public class AuthorController {
             @RequestParam Optional<String> sortBy
     ) {
         int currentPage = page.orElse(0);
-        int pageSize = size.orElse(1);
+        int pageSize = size.orElse(3);
         String sortField = sortBy.orElse("name");
 
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Author> authors = authorService.getPaginatedAuthors(pageable);
 
-        if (authors.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "No authors found"));
+        // Build headers with pagination links
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("self", "<" + linkTo(methodOn(AuthorController.class)
+                .getAllAuthors(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
+        // Add next link if there's a next page
+        if (authors.hasNext()) {
+            headers.add("next", "<" + linkTo(methodOn(AuthorController.class)
+                    .getAllAuthors(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Construct the response map
+        // Add previous link if there's a previous page
+        if (authors.hasPrevious()) {
+            headers.add("prev", "<" + linkTo(methodOn(AuthorController.class)
+                    .getAllAuthors(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+        }
+
+        // Build response body
+        if (authors.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "There are no authors on this page.",
+                    "currentPage", currentPage,
+                    "pageSize", pageSize,
+                    "sortBy", sortField
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).body(errorResponse);
+        }
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("data", authors.getContent());
         response.put("totalPages", authors.getTotalPages());
         response.put("currentPage", authors.getNumber());
         response.put("totalItems", authors.getTotalElements());
 
-        // Add links directly to the root of the response
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("self", generatePaginatedLink(currentPage, pageSize, sortField));
-        if (authors.hasPrevious()) {
-            headers.add("prev", generatePaginatedLink(currentPage - 1, pageSize, sortField));
-        }
-        if (authors.hasNext()) {
-            headers.add("next", generatePaginatedLink(currentPage + 1, pageSize, sortField));
-        }
-
         return ResponseEntity.ok().headers(headers).body(response);
-    }
-
-    private String generatePaginatedLink(int page, int size, String sortBy) {
-        return linkTo(AuthorController.class).slash("paginated").toUriComponentsBuilder()
-                .queryParam("page", page)
-                .queryParam("size", size)
-                .queryParam("sortBy", sortBy)
-                .toUriString();
     }
     @PutMapping(value = "/{authorId}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateAuthor(@NotNull @PathVariable UUID authorId, @Valid @RequestBody Author author) {

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/customers")
@@ -64,42 +66,45 @@ public class CustomerController {
             @RequestParam Optional<String> sortBy
     ) {
         int currentPage = page.orElse(0);
-        int pageSize = size.orElse(1);
+        int pageSize = size.orElse(5);
         String sortField = sortBy.orElse("name");
 
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Customer> customers = customerService.getPaginatedCustomers(pageable);
 
-        if (customers.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "No customers found"));
+        // Add pagination links to headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("self", "<" + linkTo(methodOn(CustomerController.class)
+                .getAllCustomers(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
+        if (customers.hasPrevious()) {
+            headers.add("prev", "<" + linkTo(methodOn(CustomerController.class)
+                    .getAllCustomers(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+        }
+        if (customers.hasNext()) {
+            headers.add("next", "<" + linkTo(methodOn(CustomerController.class)
+                    .getAllCustomers(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Use LinkedHashMap to ensure field order in the response
+        // Build response body
+        if (customers.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "There are no customers on this page.",
+                    "currentPage", currentPage,
+                    "pageSize", pageSize,
+                    "sortBy", sortField
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).body(errorResponse);
+        }
+
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("totalItems", customers.getTotalElements());
         response.put("data", customers.getContent());
         response.put("totalPages", customers.getTotalPages());
         response.put("currentPage", customers.getNumber());
+        response.put("totalItems", customers.getTotalElements());
 
-        // Add pagination links at the end of the response (In the body)
-        response.put("self", generatePaginatedCustomerLink(currentPage, pageSize, sortField));
-        if (customers.hasPrevious()) {
-            response.put("prev", generatePaginatedCustomerLink(currentPage - 1, pageSize, sortField));
-        }
-        if (customers.hasNext()) {
-            response.put("next", generatePaginatedCustomerLink(currentPage + 1, pageSize, sortField));
-        }
-
-        return ResponseEntity.ok(response);
-    }
-
-    private String generatePaginatedCustomerLink(int page, int size, String sortBy) {
-        return linkTo(CustomerController.class).slash("paginated").toUriComponentsBuilder()
-                .queryParam("page", page)
-                .queryParam("size", size)
-                .queryParam("sortBy", sortBy)
-                .toUriString();
+        // Return the response with headers
+        return ResponseEntity.ok().headers(headers).body(response);
     }
 
     @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")

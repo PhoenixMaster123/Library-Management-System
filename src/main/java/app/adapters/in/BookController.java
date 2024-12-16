@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,53 +39,52 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
     @GetMapping(value = "/paginated", produces = "application/paginated-books-response+json;version=1")
-    public ResponseEntity<EntityModel<Page<Book>>> getAllBooks(
+    public ResponseEntity<Map<String, Object>> getAllBooks(
             @RequestParam Optional<Integer> page,
             @RequestParam Optional<Integer> size,
             @RequestParam Optional<String> sortBy
     ) {
         int currentPage = page.orElse(0);
-        int pageSize = size.orElse(1);
+        int pageSize = size.orElse(3);
         String sortField = sortBy.orElse("title");
 
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Book> books = bookService.getPaginatedBooks(pageable);
 
-        // Create self link with actual values
-        EntityModel<Page<Book>> resource = EntityModel.of(books);
-        resource.add(linkTo(methodOn(BookController.class)
-                .getAllBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField)))
-                .withSelfRel());
-
-        // Add previous link if there is a previous page
-        if (books.hasPrevious()) {
-            resource.add(linkTo(methodOn(BookController.class)
-                    .getAllBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField)))
-                    .withRel("prev"));
-        }
-
-        // Add next link if there is a next page
-        if (books.hasNext()) {
-            resource.add(linkTo(methodOn(BookController.class)
-                    .getAllBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField)))
-                    .withRel("next"));
-        }
-
-        // Add links to response headers instead of body
+        // Add pagination links to headers
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Link", "<" + linkTo(methodOn(BookController.class)
+        headers.add("self", "<" + linkTo(methodOn(BookController.class)
                 .getAllBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
         if (books.hasPrevious()) {
-            headers.add("Link", "<" + linkTo(methodOn(BookController.class)
+            headers.add("prev", "<" + linkTo(methodOn(BookController.class)
                     .getAllBooks(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
         }
         if (books.hasNext()) {
-            headers.add("Link", "<" + linkTo(methodOn(BookController.class)
+            headers.add("next", "<" + linkTo(methodOn(BookController.class)
                     .getAllBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        return ResponseEntity.ok().headers(headers).body(resource);
+        // Build response body
+        if (books.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "There are no books on this page.",
+                    "currentPage", currentPage,
+                    "pageSize", pageSize,
+                    "sortBy", sortField
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).body(errorResponse);
+        }
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("data", books.getContent());
+        response.put("totalPages", books.getTotalPages());
+        response.put("currentPage", books.getNumber());
+        response.put("totalItems", books.getTotalElements());
+
+        // Return the response with headers
+        return ResponseEntity.ok().headers(headers).body(response);
     }
+
     @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
     public ResponseEntity<String> updateBook(@NotNull @PathVariable("id") UUID id, @NotNull @RequestBody Book book) {
         Optional<Book> existingBook = bookService.searchById(id);

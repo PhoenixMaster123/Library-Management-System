@@ -18,11 +18,6 @@ public class Customer {
     private boolean privileges;
     private final List<Transaction> transactions = new LinkedList<>();
 
-    // Constructor for new customers
-    public Customer(String name, String email, boolean privileges) {
-        this(null, name, email, privileges);
-    }
-
     // Constructor for existing customers
     public Customer(UUID customerId, String name, String email, boolean privileges) {
         this.customerId = customerId; // JPA will handle ID assignment for new customers
@@ -30,7 +25,6 @@ public class Customer {
         this.email = email;
         this.privileges = privileges;
     }
-
     public Customer() {
 
     }

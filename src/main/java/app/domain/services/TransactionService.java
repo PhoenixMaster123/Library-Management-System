@@ -145,11 +145,11 @@ public class TransactionService {
         transaction.setCustomer(customer);
         transaction.setBook(book);
 
-        book.setAvailable(false); // Mark book as borrowed
+        book.setAvailable(false); // Mark the book as borrowed
         bookDao.updateBook(bookId, book);
         transactionDao.addTransaction(transaction);
     }
-    public String returnBookWithDates(UUID bookId,LocalDate returnDate) {
+    public void returnBookWithDates(UUID bookId, LocalDate returnDate) {
         List<Transaction> transactions = transactionDao.getTransactionsForBook(new Book(bookId, null, null, 0, false, null));
 
         if (transactions.isEmpty()) {
@@ -165,6 +165,5 @@ public class TransactionService {
                 System.out.println("Returned book for transaction: " + transaction.getTransactionId());
             }
         });
-        return "Book transactions updated successfully.";
     }
 }

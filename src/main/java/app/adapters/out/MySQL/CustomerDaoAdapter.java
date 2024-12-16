@@ -1,6 +1,5 @@
 package app.adapters.out.MySQL;
 
-import app.adapters.out.MySQL.entity.BookEntity;
 import app.adapters.out.MySQL.entity.CustomerEntity;
 import app.adapters.out.MySQL.repositories.CustomRepository;
 import app.domain.models.Transaction;

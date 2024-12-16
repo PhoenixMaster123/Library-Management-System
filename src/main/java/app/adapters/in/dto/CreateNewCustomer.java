@@ -16,6 +16,7 @@ public class CreateNewCustomer {
 
     @Email(message = "Email should be valid")
     private String email;
+
     @NotNull(message = "Privileges is required")
     private boolean privileges;
 }

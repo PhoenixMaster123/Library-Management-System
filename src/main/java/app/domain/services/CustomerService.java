@@ -15,7 +15,6 @@ import java.util.UUID;
 @Service
 @Transactional
 public class CustomerService {
-
     private final CustomerDao customerDao;
     public CustomerService(CustomerDao customerDao) {
         this.customerDao = customerDao;

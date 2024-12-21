@@ -100,6 +100,7 @@ public class BookController {
         bookService.deleteBook(bookID);
         return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
     }
+    // TODO add it the header
     @GetMapping(produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBook(
             @RequestParam(required = false) UUID id,

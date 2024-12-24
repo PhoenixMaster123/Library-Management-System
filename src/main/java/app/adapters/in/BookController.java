@@ -100,7 +100,6 @@ public class BookController {
         bookService.deleteBook(bookID);
         return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
     }
-    // TODO add it the header
     @GetMapping(produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBook(
             @RequestParam(required = false) UUID id,
@@ -147,34 +146,29 @@ public class BookController {
             return ResponseEntity.ok(book);
         } else if (query != null) {
             int currentPage = page.orElse(0);
-            int pageSize = size.orElse(10);
+            int pageSize = size.orElse(2);
             String sortField = sortBy.orElse("title");
 
             PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
             Page<Book> books = bookService.searchBooks(query, pageable);
 
-            if (books.isEmpty()) {
-                return new ResponseEntity<>("No books found for the given query", HttpStatus.NOT_FOUND);
-            }
-
-            EntityModel<Page<Book>> resource = EntityModel.of(books);
-            resource.add(linkTo(methodOn(BookController.class)
-                    .getBook(null, null, null, null, query, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField)))
-                    .withSelfRel());
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("self", "<" + linkTo(methodOn(BookController.class)
+                    .getBook(null, null, null, null, query, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
 
             if (books.hasPrevious()) {
-                resource.add(linkTo(methodOn(BookController.class)
-                        .getBook(null, null, null, null, query, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField)))
-                        .withRel("prev"));
+                headers.add("prev", "<" + linkTo(methodOn(BookController.class)
+                        .getBook(null, null, null, null, query, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
             }
-
             if (books.hasNext()) {
-                resource.add(linkTo(methodOn(BookController.class)
-                        .getBook(null, null, null, null, query, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField)))
-                        .withRel("next"));
+                headers.add("next", "<" + linkTo(methodOn(BookController.class)
+                        .getBook(null, null, null, null, query, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
             }
 
-            return ResponseEntity.ok(resource);
+            if (books.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).headers(headers).body("No books found for the given query");
+            }
+            return ResponseEntity.ok().headers(headers).body(books.getContent());
         } else {
             return new ResponseEntity<>("No search criteria provided", HttpStatus.BAD_REQUEST);
         }

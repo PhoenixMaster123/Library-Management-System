@@ -8,6 +8,7 @@ import app.domain.models.Book;
 import app.domain.services.BookService;
 import app.adapters.in.dto.CreateNewBook;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,10 +76,37 @@ public class BookControllerTest {
     public void testGetAllBooks() throws Exception {
         mockMvc.perform(get("/books/paginated")
                         .param("page", "0")
-                        .param("size", "3")
+                        .param("size", "5")
                         .param("sortBy", "title"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(header().string("self", Matchers.containsString("/books/paginated?page=0&size=5")))
+                .andExpect(header().string("next", Matchers.containsString("/books/paginated?page=1&size=5")))
+                .andExpect(header().doesNotExist("prev"))
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.data[0].title").value("1984"))
+                .andExpect(jsonPath("$.data[1].title").value("Moby Dick"))
+                .andExpect(jsonPath("$.data[2].title").value("Pride and Prejudice"))
+                .andExpect(jsonPath("$.data[3].title").value("The Catcher in the Rye"))
+                .andExpect(jsonPath("$.data[4].title").value("The Divine Comedy"));
+
+        mockMvc.perform(get("/books/paginated")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sortBy", "title"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(header().string("self", Matchers.containsString("/books/paginated?page=1&size=5")))
+                .andExpect(header().doesNotExist("next"))
+                .andExpect(header().string("prev", Matchers.containsString("/books/paginated?page=0&size=5")))
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.data[0].title").value("The Great Gatsby"))
+                .andExpect(jsonPath("$.data[1].title").value("The Hobbit"))
+                .andExpect(jsonPath("$.data[2].title").value("The Odyssey"))
+                .andExpect(jsonPath("$.data[3].title").value("To Kill a Mockingbird"))
+                .andExpect(jsonPath("$.data[4].title").value("War and Peace"));
+
+
 
         assertEquals(10, bookRepository.findAll().size());
     }
@@ -111,6 +139,22 @@ public class BookControllerTest {
         assertEquals(2021, bookToUpdate.getPublicationYear());
         assertTrue(bookToUpdate.isAvailable());
         assertNotNull(bookToUpdate.getCreatedAt());
+    }
+    @Test
+    public void testUpdateBook_NotFound() throws Exception {
+        Book bookToUpdate = new Book();
+        bookToUpdate.setTitle("Updated Title");
+        bookToUpdate.setIsbn("1234567890");
+        bookToUpdate.setPublicationYear(2021);
+        bookToUpdate.setAvailable(true);
+        bookToUpdate.setCreatedAt(LocalDate.now());
+        bookToUpdate.setAuthors(Set.of(new Author("Updated Author", "updated")));
+
+        mockMvc.perform(put("/books/12345678-1234-1234-1234-123456789012")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookToUpdate)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Book not found"));
     }
 
     @Test
@@ -240,6 +284,9 @@ public class BookControllerTest {
                         .param("page", "0")  // First page
                         .param("size", "2"))  // Limit size to match the first page
                 .andExpect(status().isOk())
+                .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=0&size=2")))
+                .andExpect(header().string("next", Matchers.containsString("/books?query=The&page=1&size=2")))
+                .andExpect(header().doesNotExist("prev"))
                 .andExpect(jsonPath("$.length()").value(2))  // Only 2 books in the first page
                 .andExpect(jsonPath("$[0].title").value("The Catcher in the Rye"))
                 .andExpect(jsonPath("$[1].title").value("The Divine Comedy"));
@@ -250,6 +297,9 @@ public class BookControllerTest {
                         .param("page", "1")  // Second page
                         .param("size", "2"))  // Limit size to match the second page
                 .andExpect(status().isOk())
+                .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=1&size=2")))
+                .andExpect(header().string("next", Matchers.containsString("/books?query=The&page=2&size=2")))
+                .andExpect(header().string("prev", Matchers.containsString("/books?query=The&page=0&size=2")))
                 .andExpect(jsonPath("$.length()").value(2))  // Two more books in the second page
                 .andExpect(jsonPath("$[0].title").value("The Great Gatsby"))
                 .andExpect(jsonPath("$[1].title").value("The Hobbit"));
@@ -260,6 +310,9 @@ public class BookControllerTest {
                         .param("page", "2")  // Third page
                         .param("size", "2"))  // Limit size to match the last page
                 .andExpect(status().isOk())
+                .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=2&size=2")))
+                .andExpect(header().doesNotExist("next"))
+                .andExpect(header().string("prev", Matchers.containsString("/books?query=The&page=1&size=2")))
                 .andExpect(jsonPath("$.length()").value(1))  // One last book on the final page
                 .andExpect(jsonPath("$[0].title").value("The Odyssey"));
     }

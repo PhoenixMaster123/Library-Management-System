@@ -36,25 +36,64 @@ public class AuthorController {
 
         return ResponseEntity.ok(author);
     }
-    @GetMapping(value = "/search", produces = "application/single-author-response+json;version=1")
-    public ResponseEntity<Author> getAuthor(
+    @GetMapping(value = "/search", produces = "application/paginated-authors-response+json;version=1")
+    public ResponseEntity<Map<String, Object>> getAuthor(
             @RequestParam(required = false) UUID id,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String query) {
-        Optional<Author> author;
-
+            @RequestParam(required = false) String query,
+            @RequestParam Optional<Integer> page,
+            @RequestParam Optional<Integer> size,
+            @RequestParam Optional<String> sortBy
+    ) {
         if (id != null) {
-            author = authorService.findAuthorById(id);
-        } else if (name != null && !name.isBlank()) {
-            author = authorService.getAuthorByName(name);
-        } else if (query != null && !query.isBlank()) {
-            author = authorService.searchAuthors(query);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+            Optional<Author> author = authorService.findAuthorById(id);
+            return author.<ResponseEntity<Map<String, Object>>>map(value -> ResponseEntity.ok(Map.of("data", value))).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Author not found")));
 
-        return author.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        } else if (name != null && !name.isBlank()) {
+            Optional<Author> author = authorService.getAuthorByName(name);
+            return author.<ResponseEntity<Map<String, Object>>>map(value -> ResponseEntity.ok(Map.of("data", value))).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Author with the given name not found")));
+
+        } else if (query != null && !query.isBlank()) {
+            int currentPage = page.orElse(0);
+            int pageSize = size.orElse(3);
+            String sortField = sortBy.orElse("name");
+
+            PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
+            Page<Author> authors = authorService.searchAuthors(query, pageable);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("self", "<" + linkTo(methodOn(AuthorController.class)
+                    .getAuthor(null, null, query, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
+            if (authors.hasPrevious()) {
+                headers.add("prev", "<" + linkTo(methodOn(AuthorController.class)
+                        .getAuthor(null, null, query, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+            }
+
+            if (authors.hasNext()) {
+                headers.add("next", "<" + linkTo(methodOn(AuthorController.class)
+                        .getAuthor(null, null, query, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
+            }
+
+            if (authors.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .headers(headers)
+                        .body(Map.of("message", "No authors found for the given query"));
+            }
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("data", authors.getContent());
+            response.put("totalPages", authors.getTotalPages());
+            response.put("currentPage", authors.getNumber());
+            response.put("totalItems", authors.getTotalElements());
+
+            return ResponseEntity.ok().headers(headers).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "No search criteria provided"));
+        }
     }
 
     @GetMapping(value = "/paginated", produces = "application/paginated-authors-response+json;version=1")

@@ -38,6 +38,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
+    // TODO: finish the implementation of the rest of the methods
     @GetMapping(value = "/search", produces = "application/single-customer-response+json;version=1")
     public ResponseEntity<Customer> getCustomer(
             @RequestParam(required = false) UUID customerId,

@@ -4,7 +4,7 @@ import app.adapters.in.dto.CreateNewAuthor;
 import app.adapters.in.dto.CreateNewBook;
 import app.adapters.in.dto.CreateNewCustomer;
 import app.adapters.out.MySQL.repositories.BookRepository;
-import app.adapters.out.MySQL.repositories.CustomRepository;
+import app.adapters.out.MySQL.repositories.CustomerRepository;
 import app.domain.services.BookService;
 import app.domain.services.CustomerService;
 import app.domain.services.TransactionService;
@@ -24,14 +24,14 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final CustomerService customerService;
     private final TransactionService transactionService;
     private final BookRepository bookRepository;
-    private final CustomRepository customRepository;
+    private final CustomerRepository customerRepository;
 
-    public DatabaseSeeder(BookService bookService, CustomerService customerService, TransactionService transactionService, BookRepository bookRepository, CustomRepository customRepository) {
+    public DatabaseSeeder(BookService bookService, CustomerService customerService, TransactionService transactionService, BookRepository bookRepository, CustomerRepository customerRepository) {
         this.bookService = bookService;
         this.customerService = customerService;
         this.transactionService = transactionService;
         this.bookRepository = bookRepository;
-        this.customRepository = customRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Override
@@ -120,7 +120,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         customersToSeed.forEach(customer -> {
             try {
                 customerService.createNewCustomer(customer);
-                UUID customerId = customRepository.findByName(customer.getName())
+                UUID customerId = customerRepository.findByName(customer.getName())
                         .orElseThrow(() -> new IllegalStateException("Customer not found"))
                         .getCustomerId();
                 customerIds.add(customerId);

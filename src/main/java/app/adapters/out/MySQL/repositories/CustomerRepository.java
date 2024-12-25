@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface CustomRepository extends JpaRepository<CustomerEntity, UUID> {
+public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> {
     Optional<CustomerEntity> findByName(String name);
     @Query("SELECT c FROM CustomerEntity c LEFT JOIN c.transactions t " +
             "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) " +

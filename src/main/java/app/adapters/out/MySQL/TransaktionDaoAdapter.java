@@ -2,7 +2,7 @@ package app.adapters.out.MySQL;
 
 import app.adapters.out.MySQL.entity.TransactionEntity;
 import app.adapters.out.MySQL.repositories.BookRepository;
-import app.adapters.out.MySQL.repositories.CustomRepository;
+import app.adapters.out.MySQL.repositories.CustomerRepository;
 import app.adapters.out.MySQL.repositories.TransactionRepository;
 import app.domain.port.TransactionDao;
 import app.domain.models.Book;
@@ -23,9 +23,9 @@ public class TransaktionDaoAdapter implements TransactionDao {
 
     private final TransactionRepository transactionRepository;
     private final BookRepository bookRepository;
-    private final CustomRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
-    public TransaktionDaoAdapter(TransactionRepository transactionRepository, BookRepository bookRepository, CustomRepository customerRepository) {
+    public TransaktionDaoAdapter(TransactionRepository transactionRepository, BookRepository bookRepository, CustomerRepository customerRepository) {
         this.transactionRepository = transactionRepository;
         this.bookRepository = bookRepository;
         this.customerRepository = customerRepository;

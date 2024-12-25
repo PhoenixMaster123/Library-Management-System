@@ -27,6 +27,6 @@ public interface AuthorRepository extends JpaRepository<AuthorEntity, UUID> {
             "OR CAST(a.authorId AS string) LIKE CONCAT('%', :query, '%') " +
             "OR LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(b.isbn) LIKE LOWER(CONCAT('%', :query, '%'))")
-    Optional<AuthorEntity> searchAuthorsByQuery(@Param("query") String query);
+    Page<AuthorEntity> searchAuthorsByQuery(@Param("query") String query, Pageable pageable);
 
 }

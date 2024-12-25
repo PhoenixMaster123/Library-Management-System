@@ -14,5 +14,5 @@ public interface AuthorDao {
     Optional<Author> searchAuthorByName(String name);
     Optional<Author> searchAuthorByID(UUID id);
     Page<Author> getPaginatedAuthors(Pageable pageable);
-    Optional<Author> searchAuthors(String query);
+    Page<Author> searchAuthors(String query, Pageable pageable);
 }

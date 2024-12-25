@@ -45,8 +45,16 @@ public class AuthorDaoAdapter implements AuthorDao {
     }
 
     @Override
-    public Optional<Author> searchAuthors(String query) {
-        return authorRepository.searchAuthorsByQuery(query).map(this::mapToAuthor);
+    public Page<Author> searchAuthors(String query,Pageable pageable) {
+        String queryLowerCase = query.toLowerCase();
+        Page<AuthorEntity> authorEntities = authorRepository.
+                searchAuthorsByQuery(queryLowerCase, pageable);
+
+        List<Author> authors = authorEntities.stream()
+                .map(this::mapToAuthor)
+                .toList();
+
+        return new PageImpl<>(authors, pageable, authorEntities.getTotalElements());
     }
 
     @Override

@@ -5,6 +5,7 @@ import app.adapters.out.MySQL.repositories.CustomerRepository;
 import app.domain.models.Customer;
 import app.domain.services.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +143,110 @@ class CustomerControllerTest {
                 .andExpect(content().string("Customer successfully deleted!"));
 
         assertFalse(customerRepository.findById(customer.getCustomerId()).isPresent());
+    }
+    @Test
+    void testSearchCustomerByID() throws Exception {
+        Customer customer = customerService.createNewCustomer(
+                new CreateNewCustomer(
+                        "Test Customer", "test@example.com", true));
+
+        mockMvc.perform(get("/customers/search")
+                        .param("id", customer.getCustomerId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.name").value("Test Customer"))
+                .andExpect(jsonPath("data.email").value("test@example.com"));
+
+    }
+    @Test
+    void testSearchCustomerByID_NotFound() throws Exception {
+        mockMvc.perform(get("/customers/search")
+                        .param("id", "00000000-0000-0000-0000-000000000000"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value("Customer not found"));
+    }
+    @Test
+    void testSearchCustomerByName() throws Exception {
+        Customer customer = customerService.createNewCustomer(
+                new CreateNewCustomer(
+                        "Test Customer", "test@example.com", true));
+
+        mockMvc.perform(get("/customers/search")
+                        .param("name", customer.getName()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("data.name").value("Test Customer"))
+                .andExpect(jsonPath("data.email").value("test@example.com"));
+
+    }
+    @Test
+    void testSearchCustomerByName_NotFound() throws Exception {
+        mockMvc.perform(get("/customers/search")
+                        .param("name", "nonexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value("Customer with the given name not found"));
+    }
+    @Test
+    void testSearchCustomerByQuery_DifferentPages() throws Exception {
+        customerService.createNewCustomer(
+                new CreateNewCustomer(
+                        "Ivan Ivanov", "ivan.ivanov@example.com", true));
+
+        mockMvc.perform(get("/customers/search?query=Ivan&page=0&size=2&sortBy=name"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].name").value("Ivan Drago"))
+                .andExpect(jsonPath("$.data[0].email").value("ivan.drago@example.com"))
+                .andExpect(jsonPath("$.data[1].name").value("Ivan Ivanov"))
+                .andExpect(jsonPath("$.data[1].email").value("ivan.ivanov@example.com"))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalItems").value(2));
+    }
+    @Test
+    void testSearchCustomerByQuery_NoResults() throws Exception {
+        mockMvc.perform(get("/customers/search")
+                        .param("query", "nonexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("No customers found for the given query"));
+    }
+    @Test
+    void testSearchCustomerByQuery_NoCriteriaProvided() throws Exception {
+        mockMvc.perform(get("/customers/search"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("No search criteria provided"));
+    }
+    @Test
+    void testGetAllCustomers() throws Exception {
+        mockMvc.perform(get("/customers/paginated")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("sortBy", "name"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("self", Matchers.containsString("/customers/paginated?page=0&size=5")))
+                .andExpect(header().string("next", Matchers.containsString("/customers/paginated?page=1&size=5")))
+                .andExpect(header().doesNotExist("prev"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.data[0].name").value("Alice Smith"))
+                .andExpect(jsonPath("$.data[1].name").value("Bob Johnson"))
+                .andExpect(jsonPath("$.data[2].name").value("Charlie Brown"))
+                .andExpect(jsonPath("$.data[3].name").value("Diana Prince"))
+                .andExpect(jsonPath("$.data[4].name").value("Ethan Hunt"));
+
+        // Second page, size 3 (Normal case)
+        mockMvc.perform(get("/customers/paginated")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sortBy", "name"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("self", Matchers.containsString("/customers/paginated?page=1&size=5")))
+                .andExpect(header().string("prev", Matchers.containsString("/customers/paginated?page=0&size=5")))
+                .andExpect(header().doesNotExist("next"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(5))
+                .andExpect(jsonPath("$.data[0].name").value("Fiona Gallagher"))
+                .andExpect(jsonPath("$.data[1].name").value("George Bailey"))
+                .andExpect(jsonPath("$.data[2].name").value("Hannah Abbott"))
+                .andExpect(jsonPath("$.data[3].name").value("Ivan Drago"))
+                .andExpect(jsonPath("$.data[4].name").value("Julia Roberts"));
     }
     @AfterEach
     void tearDown() {

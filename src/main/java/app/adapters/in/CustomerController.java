@@ -38,26 +38,64 @@ public class CustomerController {
 
         return ResponseEntity.ok(customer);
     }
-    // TODO: finish the implementation of the rest of the methods
-    @GetMapping(value = "/search", produces = "application/single-customer-response+json;version=1")
-    public ResponseEntity<Customer> getCustomer(
-            @RequestParam(required = false) UUID customerId,
-            @RequestParam(required = false) String customerName,
-            @RequestParam(required = false) String query) {
-        Optional<Customer> customer;
-
-        if (customerId != null) {
-            customer = customerService.findCustomerById(customerId);
-        } else if (customerName != null && !customerName.isBlank()) {
-            customer = customerService.findCustomerByName(customerName);
+    @GetMapping(value = "/search", produces = "application/paginated-customers-response+json;version=1")
+    public ResponseEntity<Map<String, Object>> getCustomer(
+            @RequestParam(required = false) UUID id,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String query,
+            @RequestParam Optional<Integer> page,
+            @RequestParam Optional<Integer> size,
+            @RequestParam Optional<String> sortBy
+    ) {
+        if (id != null) {
+            Optional<Customer> customer = customerService.findCustomerById(id);
+            return customer.<ResponseEntity<Map<String, Object>>>map(value -> ResponseEntity.ok(Map.of("data", value)))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("message", "Customer not found")));
+        } else if (name != null && !name.isBlank()) {
+            Optional<Customer> customer = customerService.findCustomerByName(name);
+            return customer.<ResponseEntity<Map<String, Object>>>map(value -> ResponseEntity.ok(Map.of("data", value)))
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("message", "Customer with the given name not found")));
         } else if (query != null && !query.isBlank()) {
-            customer = customerService.searchCustomer(query);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+            int currentPage = page.orElse(0);
+            int pageSize = size.orElse(3);
+            String sortField = sortBy.orElse("name");
 
-        return customer.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+            PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
+            Page<Customer> customers = customerService.searchCustomer(query, pageable);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("self", "<" + linkTo(methodOn(CustomerController.class)
+                    .getCustomer(null, null, query, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
+
+            if (customers.hasPrevious()) {
+                headers.add("prev", "<" + linkTo(methodOn(CustomerController.class)
+                        .getCustomer(null, null, query, Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
+            }
+
+            if (customers.hasNext()) {
+                headers.add("next", "<" + linkTo(methodOn(CustomerController.class)
+                        .getCustomer(null, null, query, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
+            }
+
+            if (customers.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .headers(headers)
+                        .body(Map.of("message", "No customers found for the given query"));
+            }
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("data", customers.getContent());
+            response.put("totalPages", customers.getTotalPages());
+            response.put("currentPage", customers.getNumber());
+            response.put("totalItems", customers.getTotalElements());
+
+            return ResponseEntity.ok().headers(headers).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "No search criteria provided"));
+        }
     }
 
     @GetMapping(value = "/paginated", produces = "application/paginated-customers-response+json;version=1")

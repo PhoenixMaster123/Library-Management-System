@@ -15,5 +15,5 @@ public interface CustomerDao {
     void updateCustomer(Customer customer);
     void deleteCustomer(UUID id);
     Page<Customer> getPaginatedCustomers(Pageable pageable);
-    Optional<Customer> searchCustomer(String query);
+    Page<Customer> searchCustomer(String query, Pageable pageable);
 }

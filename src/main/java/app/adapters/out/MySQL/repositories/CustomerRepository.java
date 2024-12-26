@@ -1,6 +1,8 @@
 package app.adapters.out.MySQL.repositories;
 
 import app.adapters.out.MySQL.entity.CustomerEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +19,5 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> 
             "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR CAST(c.customerId AS string) LIKE CONCAT('%', :query, '%') " +
             "OR CAST(t.transactionId AS string) LIKE CONCAT('%', :query, '%')")
-    Optional<CustomerEntity> searchByQuery(@Param("query") String query);
+    Page<CustomerEntity> searchByQuery(@Param("query") String query, Pageable pageable);
 }

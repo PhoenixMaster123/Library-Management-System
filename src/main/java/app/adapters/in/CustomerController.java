@@ -31,7 +31,7 @@ public class CustomerController {
     public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
-    @PostMapping(produces = "application/single-book-response+json;version=1")
+    @PostMapping(produces = "application/single-customer-response+json;version=1")
     public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateNewCustomer newCustomer) {
 
         Customer customer = customerService.createNewCustomer(newCustomer);
@@ -109,14 +109,17 @@ public class CustomerController {
     }
 
     @PutMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<String> updateCustomer(@NotNull @PathVariable UUID id, @RequestBody Customer customer) {
+    public ResponseEntity<String> updateCustomer(@NotNull @PathVariable UUID id, @Valid @RequestBody Customer customer) {
         customer.setCustomerId(id);
         customerService.updateCustomer(customer);
         return ResponseEntity.status(HttpStatus.OK).body("Customer updated successfully!");
     }
 
     @PutMapping(value = "/{id}/privileges", produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<String> updateCustomerPrivileges(@NotNull @PathVariable UUID id, @RequestBody boolean privileges) {
+    public ResponseEntity<String> updateCustomerPrivileges(@NotNull @PathVariable UUID id, @RequestBody(required = false) Boolean privileges) {
+        if (privileges == null) {
+            return ResponseEntity.badRequest().body("Invalid privileges value");
+        }
         customerService.updatePrivileges(id, privileges);
         return ResponseEntity.ok("Customer privileges updated successfully!");
     }

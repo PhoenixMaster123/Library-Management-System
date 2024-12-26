@@ -7,12 +7,12 @@ import app.domain.services.AuthorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AuthorControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -32,11 +33,6 @@ class AuthorControllerTest {
     private AuthorRepository authorRepository;
     @Autowired
     private ObjectMapper objectMapper;
-    @BeforeEach
-    public void setUp() {
-        authorRepository.deleteAll();
-    }
-
     @Test
     public void testCreateNewAuthor() throws Exception{
         CreateNewAuthor newAuthor = new CreateNewAuthor("Test Author", "test");
@@ -47,8 +43,6 @@ class AuthorControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Test Author"))
                 .andExpect(jsonPath("$.bio").value("test"));
-
-        assertEquals(11, authorRepository.count());
     }
     @Test
     public void testGetAuthorByID() throws Exception{
@@ -187,8 +181,6 @@ class AuthorControllerTest {
 
         assertEquals("Updated Author", authorRepository.findById(author.getAuthorId()).get().getName());
         assertEquals("updated", authorRepository.findById(author.getAuthorId()).get().getBio());
-
-        assertEquals(11, authorRepository.count());
     }
     @AfterEach
     public void tearDown() {

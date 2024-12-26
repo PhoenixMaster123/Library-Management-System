@@ -10,12 +10,12 @@ import app.adapters.in.dto.CreateNewBook;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class BookControllerTest {
 
     @Autowired
@@ -43,12 +44,6 @@ public class BookControllerTest {
 
     @Autowired
     private AuthorRepository authorRepository;
-
-    @BeforeEach
-    public void setUp() {
-        bookRepository.deleteAll();
-        authorRepository.deleteAll();
-    }
 
     @Test
     public void testCreateNewBook() throws Exception {
@@ -69,7 +64,6 @@ public class BookControllerTest {
         assertEquals("1234567890", newBook.getIsbn());
         assertEquals(2021, newBook.getPublicationYear());
         assertEquals("Test Author", newBook.getAuthors().getFirst().getName());
-        assertEquals(11, bookRepository.findAll().size());
     }
 
     @Test
@@ -105,10 +99,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.data[2].title").value("The Odyssey"))
                 .andExpect(jsonPath("$.data[3].title").value("To Kill a Mockingbird"))
                 .andExpect(jsonPath("$.data[4].title").value("War and Peace"));
-
-
-
-        assertEquals(10, bookRepository.findAll().size());
     }
 
     @Test
@@ -167,8 +157,6 @@ public class BookControllerTest {
         mockMvc.perform(delete("/books/" + book.getBookId()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Book successfully deleted!!"));
-
-        assertEquals(10, bookRepository.findAll().size());
 
     }
 

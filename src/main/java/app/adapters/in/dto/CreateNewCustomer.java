@@ -15,6 +15,7 @@ public class CreateNewCustomer {
     private String name;
 
     @Email(message = "Email should be valid")
+    @NotNull(message = "Email is required")
     private String email;
 
     @NotNull(message = "Privileges is required")

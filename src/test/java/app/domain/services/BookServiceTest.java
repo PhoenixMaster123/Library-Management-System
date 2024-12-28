@@ -82,6 +82,33 @@ class BookServiceTest {
             assertEquals(1, createdBook.getAuthors().size());
         }
         @Test
+        void createNewBook_ThrowsException_WhenTitleExists() {
+            CreateNewBook newBook = new CreateNewBook(
+                    "Effective Java",
+                    "123456789",
+                    2018,
+                    List.of(new CreateNewAuthor("Joshua Bloch", "example"))
+            );
+
+            when(mockedBookDao.searchBookByTitle("Effective Java")).thenReturn(Optional.of(new Book()));
+
+            assertThrows(IllegalArgumentException.class, () -> bookService.createNewBook(newBook));
+        }
+        @Test
+        void createNewBook_ThrowsException_WhenIsbnExists() {
+            CreateNewBook newBook = new CreateNewBook(
+                    "Effective Java",
+                    "123456789",
+                    2018,
+                    List.of(new CreateNewAuthor("Joshua Bloch", "example"))
+            );
+
+            when(mockedBookDao.searchBookByTitle("Effective Java")).thenReturn(Optional.empty());
+            when(mockedBookDao.searchByIsbn("123456789")).thenReturn(Optional.of(new Book()));
+
+            assertThrows(IllegalArgumentException.class, () -> bookService.createNewBook(newBook));
+        }
+        @Test
         void deleteBook_Success() {
             UUID bookId = UUID.randomUUID();
 

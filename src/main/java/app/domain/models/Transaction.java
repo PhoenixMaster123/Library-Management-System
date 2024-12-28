@@ -22,10 +22,35 @@ public class Transaction {
         this.borrowDate = borrowDate;
         this.returnDate = returnDate;
         this.dueDate = dueDate;
-        this.customer = customer;
-        this.book = book;
+        this.setCustomer(customer);
+        this.setBook(book);
+    }
+
+    public Transaction(LocalDate borrowDate, LocalDate dueDate, Customer customer, Book book) {
+        this.transactionId = UUID.randomUUID(); // Generate a random UUID
+        this.borrowDate = borrowDate;
+        this.dueDate = dueDate;
+        this.returnDate = null;
+        this.setCustomer(customer);
+        this.setBook(book);
+    }
+
+    public Transaction(UUID transactionId, LocalDate borrowDate, LocalDate returnDate, LocalDate dueDate) {
+        this.transactionId = transactionId;
+        this.borrowDate = borrowDate;
+        this.returnDate = returnDate;
+        this.dueDate = dueDate;
     }
     public Transaction() {
 
+    }
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+        this.customerId = customer != null ? customer.getCustomerId() : null;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
+        this.bookId = book != null ? book.getBookId() : null;
     }
 }

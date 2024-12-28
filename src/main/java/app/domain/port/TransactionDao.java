@@ -13,6 +13,6 @@ public interface TransactionDao {
     void addTransaction(Transaction transaction);
     List<Transaction> getTransactionsForBook(Book book);
     Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable);
-    Optional<Transaction> findById(UUID transactionId);
+    Optional<Transaction> findTransactionById(UUID transactionId);
     void updateTransaction(Transaction transaction);
 }

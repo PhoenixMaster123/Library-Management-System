@@ -1,9 +1,12 @@
 package app.adapters.out.MySQL;
 
+import app.adapters.out.MySQL.entity.BookEntity;
+import app.adapters.out.MySQL.entity.CustomerEntity;
 import app.adapters.out.MySQL.entity.TransactionEntity;
 import app.adapters.out.MySQL.repositories.BookRepository;
 import app.adapters.out.MySQL.repositories.CustomerRepository;
 import app.adapters.out.MySQL.repositories.TransactionRepository;
+import app.domain.models.Author;
 import app.domain.port.TransactionDao;
 import app.domain.models.Book;
 import app.domain.models.Customer;
@@ -13,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,16 +38,29 @@ public class TransaktionDaoAdapter implements TransactionDao {
     @Override
     public void addTransaction(Transaction transaction) {
         TransactionEntity transactionEntity = new TransactionEntity();
-        // Do not set transactionId manually, it's handled by JPA
         transactionEntity.setBorrowDate(transaction.getBorrowDate());
         transactionEntity.setReturnDate(transaction.getReturnDate());
         transactionEntity.setDueDate(transaction.getDueDate());
-        transactionEntity.setCustomer(customerRepository.findById(transaction.getCustomer().getCustomerId())
-                .orElseThrow(() -> new EntityNotFoundException("Customer not found")));
-        transactionEntity.setBook(bookRepository.findById(transaction.getBook().getBookId())
-                .orElseThrow(() -> new EntityNotFoundException("Book not found")));
+        transactionEntity.setTransactionId(transaction.getTransactionId()); // Retain the UUID from Transaction
 
-        transactionRepository.save(transactionEntity);
+        Optional<CustomerEntity> customerEntity = customerRepository.findById(transaction.getCustomer().getCustomerId());
+        Optional<BookEntity> bookEntity = bookRepository.findById(transaction.getBook().getBookId());
+
+        if (customerEntity.isEmpty()) {
+            throw new EntityNotFoundException("Customer not found");
+        }
+
+        if (bookEntity.isEmpty()) {
+            throw new EntityNotFoundException("Book not found");
+        }
+
+        transactionEntity.setCustomer(customerEntity.get());
+        transactionEntity.setBook(bookEntity.get());
+
+        TransactionEntity savedEntity = transactionRepository.save(transactionEntity);
+
+        transaction.setTransactionId(savedEntity.getTransactionId());
+
     }
 
     @Override
@@ -61,7 +78,7 @@ public class TransaktionDaoAdapter implements TransactionDao {
     }
 
     @Override
-    public Optional<Transaction> findById(UUID transactionId) {
+    public Optional<Transaction> findTransactionById(UUID transactionId) {
         return transactionRepository.findById(transactionId)
                 .map(this::mapToDomain);
     }
@@ -92,7 +109,16 @@ public class TransaktionDaoAdapter implements TransactionDao {
                         entity.getBook().getIsbn(),
                         entity.getBook().getPublicationYear(),
                         entity.getBook().isAvailability(),
-                        entity.getBook().getCreated_at()
+                        entity.getBook().getCreated_at(),
+                        entity.getBook().getAuthors() != null
+                                ? entity.getBook().getAuthors().stream()
+                                .map(authorEntity -> new Author(
+                                        authorEntity.getAuthorId(),
+                                        authorEntity.getName(),
+                                        authorEntity.getBio()
+                                ))
+                                .collect(Collectors.toSet())
+                                : new HashSet<>()
                 )
         );
     }

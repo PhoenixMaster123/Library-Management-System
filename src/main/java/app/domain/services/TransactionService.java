@@ -31,39 +31,29 @@ public class TransactionService {
         this.customerDao = customerDao;
     }
     public Transaction createNewTransaction(CreateNewTransaktion newTransaktion) {
-        // Validate borrowDate and dueDate
-        if (newTransaktion.getBorrowDate() == null || newTransaktion.getDueDate() == null) {
-            throw new IllegalArgumentException("Borrow date and due date must not be null.");
+
+        if (newTransaktion.getBorrowDate().isAfter(newTransaktion.getDueDate())) {
+            throw new IllegalArgumentException("Borrow date must be before due date");
         }
-        if (newTransaktion.getDueDate().isBefore(newTransaktion.getBorrowDate())) {
-            throw new IllegalArgumentException("Due date must be after borrow date.");
-        }
-        if (newTransaktion.getBorrowDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Borrow date must not be in the past.");
+        if (newTransaktion.getDueDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Due date must be in the future");
         }
 
-        // Fetch customer and book
+        // Fetch the customer
         Customer customer = customerDao.getCustomer(newTransaktion.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
 
+        // Fetch the book
         Book book = bookDao.searchBookById(newTransaktion.getBookId())
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        if (!book.isAvailable()) {
-            throw new IllegalArgumentException("Book is not available for borrowing.");
-        }
-
-        // Mark the book as unavailable
-        book.setAvailable(false);
-        bookDao.updateBook(book.getBookId(), book);
-
         // Create the transaction
-        Transaction transaction = new Transaction();
-        transaction.setTransactionId(UUID.randomUUID());
-        transaction.setBorrowDate(newTransaktion.getBorrowDate());
-        transaction.setDueDate(newTransaktion.getDueDate());
-        transaction.setCustomer(customer);
-        transaction.setBook(book);
+        Transaction transaction = new Transaction(
+                newTransaktion.getBorrowDate(),
+                newTransaktion.getDueDate(),
+                customer,
+                book
+        );
 
         // Save the transaction
         transactionDao.addTransaction(transaction);
@@ -87,7 +77,7 @@ public class TransactionService {
 
         return transaction.getTransactionId().toString();
     }
-    public void borrowBook(UUID customerId, UUID bookId) {
+    public Transaction borrowBook(UUID customerId, UUID bookId) {
         // Fetch the book and validate availability
         Book book = bookDao.searchBookById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found."));
@@ -118,12 +108,13 @@ public class TransactionService {
         // Update book availability
         book.setAvailable(false);
         bookDao.updateBook(bookId, book);
+        return transaction;
     }
     public Page<Transaction> viewBorrowingHistory(UUID customerId, Pageable pageable) {
         return transactionDao.viewBorrowingHistory(customerId, pageable);
     }
     public Optional<Transaction> findById(UUID transactionId) {
-        return transactionDao.findById(transactionId);
+        return transactionDao.findTransactionById(transactionId);
     }
 
     public void borrowBookWithDates(UUID customerId, UUID bookId, LocalDate borrowDate) {

@@ -5,6 +5,7 @@ import app.adapters.in.dto.TransactionResponse;
 import app.domain.models.Transaction;
 import app.domain.services.BookService;
 import app.domain.services.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,8 +35,8 @@ public class TransactionController {
         this.bookService = bookService;
     }
 
-    @PostMapping(produces = "application/single-book-response+json;version=1")
-    public ResponseEntity<Transaction> createNewTransaction(@RequestBody CreateNewTransaktion newTransaktion) {
+    @PostMapping(produces = "application/single-transaction-response+json;version=1")
+    public ResponseEntity<Transaction> createNewTransaction(@Valid @RequestBody CreateNewTransaktion newTransaktion) {
         try {
             // Create a new transaction
             Transaction transaction = transactionService.createNewTransaction(newTransaktion);
@@ -44,11 +45,12 @@ public class TransactionController {
             // Handle the case when the book is not available
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @PostMapping("/returnBook/{bookId}")
+    @PostMapping(value = "/returnBook/{bookId}", produces = "application/transaction-response+json;version=1")
     public ResponseEntity<TransactionResponse> returnBook(@PathVariable UUID bookId) {
         try {
             if (bookService.searchById(bookId).isEmpty()) {
@@ -64,7 +66,7 @@ public class TransactionController {
         }
     }
 
-    @PostMapping("/borrowBook/{customerId}/{bookId}")
+    @PostMapping(value = "/borrowBook/{customerId}/{bookId}", produces = "application/transaction-response+json;version=1")
     public ResponseEntity<String> borrowBook(
             @PathVariable UUID customerId,
             @PathVariable UUID bookId) {
@@ -121,9 +123,9 @@ public class TransactionController {
         return ResponseEntity.ok().headers(headers).body(response);
     }
 
-    @GetMapping("/{transactionId}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID transactionId) {
-        Optional<Transaction> transactionOpt = transactionService.findById(transactionId);
+    @GetMapping(value = "/{id}", produces = "application/single-transaction-response+json;version=1")
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID id) {
+        Optional<Transaction> transactionOpt = transactionService.findById(id);
         return transactionOpt.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }

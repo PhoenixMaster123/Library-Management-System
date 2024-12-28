@@ -12,5 +12,5 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
     List<TransactionEntity> findByBookBookId(UUID bookId);
     Page<TransactionEntity> findByCustomerCustomerId(UUID customerId, Pageable pageable);
-
+    long countByCustomer_CustomerId(UUID customerId);
 }

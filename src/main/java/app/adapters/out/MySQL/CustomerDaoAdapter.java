@@ -78,10 +78,9 @@ public class CustomerDaoAdapter implements CustomerDao {
                     transactionEntity.getTransactionId(),
                     transactionEntity.getBorrowDate(),
                     transactionEntity.getReturnDate(),
-                    transactionEntity.getDueDate(),
-                    null,
-                    null
+                    transactionEntity.getDueDate()
             );
+
             transaction.setCustomerId(customerEntity.getCustomerId());
             transaction.setBookId(transactionEntity.getBook() != null ? transactionEntity.getBook().getBookId() : null);
 

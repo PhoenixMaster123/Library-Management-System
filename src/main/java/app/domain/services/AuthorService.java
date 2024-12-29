@@ -30,9 +30,6 @@ public class AuthorService {
     public void updateAuthor(UUID authorId, Author author) {
         authorDao.updateAuthor(authorId, author);
     }
-    public void deleteAuthor(UUID id) {
-        authorDao.deleteAuthor(id);
-    }
     public Optional<Author> getAuthorByName(String name) {
         return authorDao.searchAuthorByName(name);
     }

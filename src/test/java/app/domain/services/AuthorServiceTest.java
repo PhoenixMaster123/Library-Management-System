@@ -13,27 +13,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.web.servlet.MockMvc;
-
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthorServiceTest {
 
-    // Mocked Dependencies for Unit Tests
     @Mock
     private AuthorDao mockedAuthorDao;
 
-    // Real Dependencies for Integration Tests
     @Autowired
     private AuthorDao realAuthorDao;
 
@@ -42,9 +37,6 @@ class AuthorServiceTest {
 
     @Autowired
     private AuthorRepository authorRepository;
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @BeforeAll
     void setup() {
@@ -69,7 +61,6 @@ class AuthorServiceTest {
 
             authorService.createNewAuthor(newAuthor);
 
-            // Capture and verify
             ArgumentCaptor<Author> captor = ArgumentCaptor.forClass(Author.class);
             verify(mockedAuthorDao).addAuthor(captor.capture());
             assertEquals("John Doe", captor.getValue().getName());
@@ -121,13 +112,10 @@ class AuthorServiceTest {
             Author existingAuthor = new Author(authorId, "John Doe", "example");
             Author updatedAuthor = new Author("John Update", "updated bio");
 
-            // Mock the behavior of the search method
             when(mockedAuthorDao.searchAuthorByID(authorId)).thenReturn(Optional.of(existingAuthor));
 
-            // Perform the update operation
             authorService.updateAuthor(authorId, updatedAuthor);
 
-            // Verify that the update method was called once with the correct arguments
             verify(mockedAuthorDao).updateAuthor(eq(authorId), argThat(updated -> {
                 assertEquals(updatedAuthor.getName(), updated.getName());
                 assertEquals(updatedAuthor.getBio(), updated.getBio());
@@ -143,10 +131,8 @@ class AuthorServiceTest {
                     new Author(UUID.randomUUID(),"Jane Smith", "example")));
             Mockito.when(mockedAuthorDao.getPaginatedAuthors(pageable)).thenReturn(mockPage);
 
-            // Act
             Page<Author> result = authorService.getPaginatedAuthors(pageable);
 
-            // Assert
             assertNotNull(result);
             assertEquals(2, result.getContent().size());
             Mockito.verify(mockedAuthorDao, Mockito.times(1)).getPaginatedAuthors(pageable);
@@ -160,10 +146,10 @@ class AuthorServiceTest {
             Page<Author> mockPage = new PageImpl<>(List.of(new Author("John Doe", "example")));
             Mockito.when(mockedAuthorDao.searchAuthors(query, pageable)).thenReturn(mockPage);
 
-            // Act
+
             Page<Author> result = authorService.searchAuthors(query, pageable);
 
-            // Assert
+
             assertNotNull(result);
             assertEquals(1, result.getContent().size());
             assertEquals("John Doe", result.getContent().getFirst().getName());
@@ -208,21 +194,21 @@ class AuthorServiceTest {
 
         @Test
         void searchAuthorById_IntegrationTest() {
-            // Create the Author object
+
             Author author = new Author("Author Name", "Author bio");
 
-            // Persist the Author
+
             realAuthorDao.addAuthor(author);
 
-            // Retrieve the persisted Author by its name to obtain the generated ID
+
             Optional<Author> persistedAuthor = realAuthorDao.searchAuthorByName("Author Name");
 
             assertTrue(persistedAuthor.isPresent());
 
-            // Use the retrieved Author's ID for the test
+
             Optional<Author> result = realAuthorService.findAuthorById(persistedAuthor.get().getAuthorId());
 
-            // Assertions
+
             assertTrue(result.isPresent());
             assertEquals("Author Name", result.get().getName());
             assertEquals("Author bio", result.get().getBio());
@@ -230,25 +216,62 @@ class AuthorServiceTest {
         }
 
         @Test
-        public void testGetPaginatedAuthors() throws Exception {
-            mockMvc.perform(get("/authors/paginated"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(3))
-                    .andExpect(jsonPath("$.data[0].name").value("Dante Alighieri"))
-                    .andExpect(jsonPath("$.data[1].name").value("F. Scott Fitzgerald"))
-                    .andExpect(jsonPath("$.data[2].name").value("George Orwell"));
+        void testGetPaginatedAuthors_Success() {
+
+            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
+            Author author2 = new Author(null, "George Orwell", "English");
+            Author author3 = new Author(null, "Jane Austen", "English");
+
+            realAuthorDao.addAuthor(author1);
+            realAuthorDao.addAuthor(author2);
+            realAuthorDao.addAuthor(author3);
+
+            Pageable pageable = PageRequest.of(0, 2);
+
+
+            Page<Author> authorsPage = realAuthorService.getPaginatedAuthors(pageable);
+
+
+            assertThat(authorsPage.getContent()).hasSize(2);
+            assertThat(authorsPage.getTotalElements()).isEqualTo(3);
         }
 
         @Test
-        public void testSearchAuthors() throws Exception {
-            mockMvc.perform(get("/authors/search?query=J"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data").isArray())
-                    .andExpect(jsonPath("$.data.length()").value(3))
-                    .andExpect(jsonPath("$.data[0].name").value("J.D. Salinger"))
-                    .andExpect(jsonPath("$.data[1].name").value("J.R.R. Tolkien"))
-                    .andExpect(jsonPath("$.data[2].name").value("Jane Austen"));
+        void testSearchAuthors_Success() {
+
+            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
+            Author author2 = new Author(null, "George Orwell", "English");
+            Author author3 = new Author(null, "Jane Austen", "English");
+
+            realAuthorDao.addAuthor(author1);
+            realAuthorDao.addAuthor(author2);
+            realAuthorDao.addAuthor(author3);
+
+            Pageable pageable = PageRequest.of(0, 10);
+
+
+            Page<Author> searchedAuthors = realAuthorService.searchAuthors("Tolkien", pageable);
+
+
+            assertThat(searchedAuthors.getContent()).hasSize(1);
+            assertThat(searchedAuthors.getContent().getFirst().getName()).isEqualTo("J.R.R. Tolkien");
+        }
+
+        @Test
+        void testSearchAuthors_NoResults() {
+            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
+            Author author2 = new Author(null, "George Orwell", "English");
+            Author author3 = new Author(null, "Jane Austen", "English");
+
+            realAuthorDao.addAuthor(author1);
+            realAuthorDao.addAuthor(author2);
+            realAuthorDao.addAuthor(author3);
+
+            Pageable pageable = PageRequest.of(0, 10);
+
+            Page<Author> searchedAuthors = realAuthorService.searchAuthors("NonexistentAuthor", pageable);
+
+            assertThat(searchedAuthors.getContent()).isEmpty();
         }
         @AfterEach
         void tearDown() {

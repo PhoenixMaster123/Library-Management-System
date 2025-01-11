@@ -15,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,6 +60,29 @@ class AuthorControllerTest {
                 .andExpect(jsonPath("$.data.name").value("Test Author"))
                 .andExpect(jsonPath("$.data.bio").value("test"));
 
+    }
+    @Test
+    public void getAuthorById_ShouldReturnAuthor_WhenAuthorExists() throws Exception {
+        Author author = authorService.createNewAuthor(
+                new CreateNewAuthor("Test Author", "test"));
+        mockMvc.perform(get("/authors/" + author.getAuthorId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Author retrieved successfully"))
+                .andExpect(jsonPath("$.data.name").value("Test Author"));
+    }
+
+    @Test
+    public void getAuthorById_ShouldReturnNotFound_WhenAuthorDoesNotExist() throws Exception {
+        mockMvc.perform(get("/authors/" + UUID.randomUUID()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Author not found"));
+    }
+
+    @Test
+    public void getAuthorById_ShouldReturnBadRequest_WhenUUIDIsInvalid() throws Exception {
+        mockMvc.perform(get("/authors/invalid-uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid UUID format"));
     }
     @Test
     public void testGetAuthorByName() throws Exception{

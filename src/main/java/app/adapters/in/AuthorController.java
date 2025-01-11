@@ -36,6 +36,37 @@ public class AuthorController {
 
         return ResponseEntity.ok(author);
     }
+    @GetMapping(value = "/{id}", produces = "application/single-author-response+json;version=1")
+    public ResponseEntity<Map<String, Object>> getAuthorById(@PathVariable String id) {
+        UUID authorId;
+
+        try {
+            authorId = UUID.fromString(id);
+        } catch (IllegalArgumentException ex) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "Invalid UUID format",
+                    "providedId", id
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<Author> author = authorService.findAuthorById(authorId);
+
+        if (author.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "Author not found",
+                    "authorId", authorId
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+
+        Map<String, Object> response = Map.of(
+                "message", "Author retrieved successfully",
+                "data", author.get()
+        );
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping(value = "/search", produces = "application/paginated-authors-response+json;version=1")
     public ResponseEntity<Map<String, Object>> getAuthor(
             @RequestParam(required = false) UUID id,
@@ -109,24 +140,20 @@ public class AuthorController {
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Author> authors = authorService.getPaginatedAuthors(pageable);
 
-        // Build headers with pagination links
         HttpHeaders headers = new HttpHeaders();
         headers.add("self", "<" + linkTo(methodOn(AuthorController.class)
                 .getAllAuthors(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
 
-        // Add next link if there's a next page
         if (authors.hasNext()) {
             headers.add("next", "<" + linkTo(methodOn(AuthorController.class)
                     .getAllAuthors(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Add previous link if there's a previous page
         if (authors.hasPrevious()) {
             headers.add("prev", "<" + linkTo(methodOn(AuthorController.class)
                     .getAllAuthors(Optional.of(currentPage - 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"prev\"");
         }
 
-        // Build response body
         if (authors.isEmpty()) {
             Map<String, Object> errorResponse = Map.of(
                     "message", "There are no authors on this page.",
@@ -152,10 +179,4 @@ public class AuthorController {
         authorService.updateAuthor(authorId, author);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author updated successfully!");
     }
-    /*@DeleteMapping("/deleteAuthorById/{id}")
-    public ResponseEntity<String> deleteAuthor(@NotNull @PathVariable UUID id) {
-        authorService.deleteAuthor(id);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Author deleted successfully!");
-    }
-     */
 }

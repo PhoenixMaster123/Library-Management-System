@@ -100,6 +100,25 @@ public class BookController {
         bookService.deleteBook(bookID);
         return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
     }
+    @GetMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
+    public ResponseEntity<Map<String, Object>> getBookById(@PathVariable UUID id) {
+        Optional<Book> book = bookService.searchById(id);
+
+        if (book.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "Book not found",
+                    "bookId", id
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+
+        Map<String, Object> response = Map.of(
+                "message", "Book retrieved successfully",
+                "data", book.get()
+        );
+
+        return ResponseEntity.ok(response);
+    }
     @GetMapping(produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBook(
             @RequestParam(required = false) UUID id,

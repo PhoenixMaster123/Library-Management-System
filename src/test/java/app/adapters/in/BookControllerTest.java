@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,7 +45,6 @@ public class BookControllerTest {
 
     @Autowired
     private AuthorRepository authorRepository;
-
     @Test
     public void testCreateNewBook() throws Exception {
         CreateNewBook newBook = new CreateNewBook("Test Book", "1234567890",
@@ -100,7 +100,6 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.data[3].title").value("To Kill a Mockingbird"))
                 .andExpect(jsonPath("$.data[4].title").value("War and Peace"));
     }
-
     @Test
     public void testUpdateBook() throws Exception {
         Book createdBook = bookService.createNewBook(
@@ -182,6 +181,26 @@ public class BookControllerTest {
                         .param("id", "12345678-1234-1234-1234-123456789012"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Book not found"));
+    }
+    @Test
+    void testGetBookById_Method() throws Exception {
+        Book book = bookService.createNewBook(
+                new CreateNewBook("Test Book", "1234567890",
+                        2021, List.of(
+                        new CreateNewAuthor("Test Author", "test"))));
+
+        mockMvc.perform(get("/books/{id}", book.getBookId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.bookId").value(book.getBookId().toString()));
+    }
+
+    @Test
+    void testGetBookById_NotFound_Method() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+
+        mockMvc.perform(get("/books/{id}", nonExistentId))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Book not found"));
     }
     @Test
     public void testGetBookByTitle() throws Exception {

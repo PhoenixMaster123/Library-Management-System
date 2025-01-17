@@ -9,15 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -37,6 +36,33 @@ public class CustomerController {
         Customer customer = customerService.createNewCustomer(newCustomer);
 
         return ResponseEntity.ok(customer);
+    }
+    @GetMapping(value = "/{id}", produces = {"application/single-customer-response+json;version=1", MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Map<String, Object>> getCustomerById(@PathVariable UUID id) {
+        Optional<Customer> customerOpt = customerService.findCustomerById(id);
+
+        if (customerOpt.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "Customer not found",
+                    "customerId", id
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        CacheControl cacheControl = CacheControl
+                .maxAge(30, TimeUnit.SECONDS)
+                .cachePrivate()
+                .noTransform();
+
+        Map<String, Object> response = Map.of(
+                "message", "Customer retrieved successfully",
+                "data", customerOpt.get()
+        );
+
+        return ResponseEntity.ok()
+                .cacheControl(cacheControl)
+                .header("Vary", "Accept")
+                .body(response);
     }
     @GetMapping(value = "/search", produces = "application/paginated-customers-response+json;version=1")
     public ResponseEntity<Map<String, Object>> getCustomer(
@@ -111,7 +137,6 @@ public class CustomerController {
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Customer> customers = customerService.getPaginatedCustomers(pageable);
 
-        // Add pagination links to headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("self", "<" + linkTo(methodOn(CustomerController.class)
                 .getAllCustomers(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
@@ -125,7 +150,6 @@ public class CustomerController {
                     .getAllCustomers(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Build response body
         if (customers.isEmpty()) {
             Map<String, Object> errorResponse = Map.of(
                     "message", "There are no customers on this page.",
@@ -142,7 +166,6 @@ public class CustomerController {
         response.put("currentPage", customers.getNumber());
         response.put("totalItems", customers.getTotalElements());
 
-        // Return the response with headers
         return ResponseEntity.ok().headers(headers).body(response);
     }
 

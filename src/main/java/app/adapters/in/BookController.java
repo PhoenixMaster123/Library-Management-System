@@ -10,9 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
@@ -20,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/books")
@@ -100,8 +99,9 @@ public class BookController {
         bookService.deleteBook(bookID);
         return new ResponseEntity<>("Book successfully deleted!!", HttpStatus.OK);
     }
-    @GetMapping(value = "/{id}", produces = "application/single-book-response+json;version=1")
+    @GetMapping(value = "/{id}", produces = {"application/single-book-response+json;version=1", MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Map<String, Object>> getBookById(@PathVariable UUID id) {
+
         Optional<Book> book = bookService.searchById(id);
 
         if (book.isEmpty()) {
@@ -112,12 +112,20 @@ public class BookController {
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
 
+        CacheControl cacheControl = CacheControl
+                .maxAge(30, TimeUnit.SECONDS)
+                .cachePrivate()
+                .noTransform();
+
         Map<String, Object> response = Map.of(
                 "message", "Book retrieved successfully",
-                "data", book.get()
+                "data", book
         );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .cacheControl(cacheControl)
+                .header("Vary", "Accept")
+                .body(response);
     }
     @GetMapping(produces = "application/single-book-response+json;version=1")
     public ResponseEntity<?> getBook(

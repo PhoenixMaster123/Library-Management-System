@@ -10,15 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -38,11 +37,9 @@ public class TransactionController {
     @PostMapping(produces = "application/single-transaction-response+json;version=1")
     public ResponseEntity<Transaction> createNewTransaction(@Valid @RequestBody CreateNewTransaktion newTransaktion) {
         try {
-            // Create a new transaction
             Transaction transaction = transactionService.createNewTransaction(newTransaktion);
             return ResponseEntity.ok(transaction);
         } catch (IllegalArgumentException e) {
-            // Handle the case when the book is not available
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -119,14 +116,34 @@ public class TransactionController {
         response.put("currentPage", transactionsPage.getNumber());
         response.put("totalItems", transactionsPage.getTotalElements());
 
-        // Return the response with headers
         return ResponseEntity.ok().headers(headers).body(response);
     }
 
-    @GetMapping(value = "/{id}", produces = "application/single-transaction-response+json;version=1")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID id) {
+    @GetMapping(value = "/{id}", produces = {"application/single-transaction-response+json;version=1", MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Map<String, Object>> getTransactionById(@PathVariable UUID id) {
         Optional<Transaction> transactionOpt = transactionService.findById(id);
-        return transactionOpt.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        if (transactionOpt.isEmpty()) {
+            Map<String, Object> errorResponse = Map.of(
+                    "message", "Transaction not found",
+                    "transactionId", id
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        CacheControl cacheControl = CacheControl
+                .maxAge(30, TimeUnit.SECONDS)
+                .cachePrivate()
+                .noTransform();
+
+        Map<String, Object> response = Map.of(
+                "message", "Transaction retrieved successfully",
+                "data", transactionOpt.get()
+        );
+
+        return ResponseEntity.ok()
+                .cacheControl(cacheControl)
+                .header("Vary", "Accept")
+                .body(response);
     }
 }

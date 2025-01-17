@@ -278,18 +278,17 @@ public class BookControllerTest {
         mockMvc.perform(get("/books")
                         .param("query", "Test"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Test Book"))  // Access the first element of the array
+                .andExpect(jsonPath("$[0].title").value("Test Book"))
                 .andExpect(jsonPath("$[0].isbn").value("1234567890"))
                 .andExpect(jsonPath("$[0].publicationYear").value(2021))
                 .andExpect(jsonPath("$[0].authors[0].name").value("Test Author"));
     }
     @Test
     public void testGetBookByQuery_multipleResults() throws Exception {
-        // First request for page 0
         mockMvc.perform(get("/books")
                         .param("query", "The")
-                        .param("page", "0")  // First page
-                        .param("size", "2"))  // Limit size to match the first page
+                        .param("page", "0")
+                        .param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=0&size=2")))
                 .andExpect(header().string("next", Matchers.containsString("/books?query=The&page=1&size=2")))
@@ -298,29 +297,27 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$[0].title").value("The Catcher in the Rye"))
                 .andExpect(jsonPath("$[1].title").value("The Divine Comedy"));
 
-        // Second request for page 1
         mockMvc.perform(get("/books")
                         .param("query", "The")
-                        .param("page", "1")  // Second page
-                        .param("size", "2"))  // Limit size to match the second page
+                        .param("page", "1")
+                        .param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=1&size=2")))
                 .andExpect(header().string("next", Matchers.containsString("/books?query=The&page=2&size=2")))
                 .andExpect(header().string("prev", Matchers.containsString("/books?query=The&page=0&size=2")))
-                .andExpect(jsonPath("$.length()").value(2))  // Two more books in the second page
+                .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].title").value("The Great Gatsby"))
                 .andExpect(jsonPath("$[1].title").value("The Hobbit"));
 
-        // Third request for the last page
         mockMvc.perform(get("/books")
                         .param("query", "The")
-                        .param("page", "2")  // Third page
-                        .param("size", "2"))  // Limit size to match the last page
+                        .param("page", "2")
+                        .param("size", "2"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("self", Matchers.containsString("/books?query=The&page=2&size=2")))
                 .andExpect(header().doesNotExist("next"))
                 .andExpect(header().string("prev", Matchers.containsString("/books?query=The&page=1&size=2")))
-                .andExpect(jsonPath("$.length()").value(1))  // One last book on the final page
+                .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].title").value("The Odyssey"));
     }
 

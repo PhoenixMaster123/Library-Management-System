@@ -70,16 +70,15 @@ class TransactionControllerTest {
     }
     @Test
     void testCreateNewTransaction() throws Exception {
-        // Generate valid dates dynamically
         LocalDate today = LocalDate.now();
-        LocalDate futureDueDate = today.plusDays(1); // Due date must be in the future
+        LocalDate futureDueDate = today.plusDays(1);
 
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();
 
         CreateNewTransaktion newTransaktion = new CreateNewTransaktion(
-                today,              // borrowDate: today (valid)
-                futureDueDate,      // dueDate: 1 day in the future (valid)
+                today,
+                futureDueDate,
                 customerId,
                 bookId
         );
@@ -92,6 +91,33 @@ class TransactionControllerTest {
                 .andExpect(jsonPath("$.dueDate").value(futureDueDate.toString()))
                 .andExpect(jsonPath("$.customer.customerId").value(newTransaktion.getCustomerId().toString()))
                 .andExpect(jsonPath("$.book.bookId").value(newTransaktion.getBookId().toString()));
+    }
+    @Test
+    void testCreateNewTransaction_BadRequest() throws Exception {
+        CreateNewTransaktion invalidTransaction = new CreateNewTransaktion(
+                LocalDate.now(),
+                LocalDate.now().plusDays(10),
+                UUID.randomUUID(),
+                null
+        );
+
+        mockMvc.perform(post("/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidTransaction)))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    void testCreateNewTransaction_InternalServerError() throws Exception {
+        CreateNewTransaktion validTransaction = new CreateNewTransaktion(
+                LocalDate.now(),
+                LocalDate.now().plusDays(10),
+                UUID.randomUUID(),
+                UUID.randomUUID()
+        );
+        mockMvc.perform(post("/transactions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validTransaction)))
+                .andExpect(status().isInternalServerError());
     }
     @Test
     void testBorrowBook() throws Exception {
@@ -110,7 +136,6 @@ class TransactionControllerTest {
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();
 
-        // Borrow the book
         transactionService.borrowBook(customerId, bookId);
 
         mockMvc.perform(post("/transactions/borrowBook/{customerId}/{bookId}", customerId, bookId))
@@ -122,7 +147,6 @@ class TransactionControllerTest {
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();
 
-        // Borrow the book
         transactionService.borrowBook(customerId, bookId);
 
         mockMvc.perform(post("/transactions/returnBook/{bookId}", bookId))
@@ -150,41 +174,48 @@ class TransactionControllerTest {
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();
 
-        // Borrow the book and create the transaction
         Transaction transaction = transactionService.borrowBook(customerId, bookId);
 
-        // Ensure the transaction was saved
         assertNotNull(transaction);
         assertNotNull(transaction.getTransactionId());
 
-        // Get the transaction ID after borrowing the book
         UUID transactionId = transaction.getTransactionId();
 
-
-        // Perform the GET request to retrieve the transaction by ID
         mockMvc.perform(get("/transactions/{id}", transactionId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.transactionId").value(transactionId.toString()))
-                .andExpect(jsonPath("$.borrowDate").exists())
-                .andExpect(jsonPath("$.dueDate").exists())
-                .andExpect(jsonPath("$.customer.customerId").value(customerId.toString()))
-                .andExpect(jsonPath("$.book.bookId").value(bookId.toString()));
+                .andExpect(jsonPath("$.data.transactionId").value(transactionId.toString()))
+                .andExpect(jsonPath("$.data.borrowDate").exists())
+                .andExpect(jsonPath("$.data.dueDate").exists())
+                .andExpect(jsonPath("$.data.customer.customerId").value(customerId.toString()))
+                .andExpect(jsonPath("$.data.book.bookId").value(bookId.toString()));
     }
     @Test
-    void testGetTransactionID_notFound() throws Exception {
-        UUID transactionId = UUID.randomUUID();
+    void testGetTransactionById_NotFound() throws Exception {
+        UUID invalidTransactionId = UUID.randomUUID();
 
-        mockMvc.perform(get("/transactions/{id}", transactionId))
-                .andExpect(status().isNotFound());}
+        mockMvc.perform(get("/transactions/{id}", invalidTransactionId)
+                        .accept("application/single-transaction-response+json;version=1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Transaction not found"))
+                .andExpect(jsonPath("$.transactionId").value(invalidTransactionId.toString()));
+    }
+    @Test
+    void testGetTransactionById_InvalidUUID() throws Exception {
+        String invalidUuid = "123-invalid-uuid";
+
+        mockMvc.perform(get("/transactions/{id}", invalidUuid)
+                        .accept("application/single-transaction-response+json;version=1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid UUID format"))
+                .andExpect(jsonPath("$.providedId").value(invalidUuid));
+    }
     @Test
     void testViewBorrowingHistory() throws Exception {
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();
 
-        // Borrow the book
         transactionService.borrowBook(customerId, bookId);
 
-        // Perform the GET request to retrieve the borrowing history
         mockMvc.perform(get("/transactions/history/{customerId}", customerId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].transactionId").exists())

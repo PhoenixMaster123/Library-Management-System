@@ -15,6 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -60,16 +63,14 @@ class CustomerControllerTest {
     }
     @Test
     void createNewCustomer_ShouldReturnBadRequest_WhenInputIsInvalid() throws Exception {
-        // Arrange
         CreateNewCustomer invalidCustomer = new CreateNewCustomer("Test Customer", "test", true);
 
-        // Act & Assert
         mockMvc.perform(post("/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidCustomer)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.email").exists()) // Adjust to match the actual structure
-                .andExpect(jsonPath("$.email").value("Email should be valid")); // Adjust to match the actual structure
+                .andExpect(jsonPath("$.email").exists())
+                .andExpect(jsonPath("$.email").value("Email should be valid"));
     }
     @Test
     void testCreateNewCustomerWithInvalidName() throws Exception {
@@ -80,6 +81,43 @@ class CustomerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCustomer)))
                 .andExpect(status().isBadRequest());
+    }
+    @Test
+    void testGetCustomerById_Success() throws Exception {
+        Customer customer = customerService.createNewCustomer(
+                new CreateNewCustomer(
+                        "Test Customer", "test@example.com", true));
+
+        mockMvc.perform(get("/customers/{id}", customer.getCustomerId())
+                        .accept("application/single-customer-response+json;version=1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/single-customer-response+json;version=1"))
+                .andExpect(jsonPath("$.message").value("Customer retrieved successfully"))
+                .andExpect(jsonPath("$.data.customerId").value(customer.getCustomerId().toString()))
+                .andExpect(jsonPath("$.data.name").value(customer.getName()))
+                .andExpect(jsonPath("$.data.email").value(customer.getEmail()));
+    }
+
+    @Test
+    void testGetCustomerById_NotFound() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+
+        mockMvc.perform(get("/customers/{id}", nonExistentId)
+                        .accept("application/single-customer-response+json;version=1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Customer not found"))
+                .andExpect(jsonPath("$.customerId").value(nonExistentId.toString()));
+    }
+
+    @Test
+    void testGetCustomerById_InvalidUUID() throws Exception {
+        String invalidId = "123-invalid-uuid";
+
+        mockMvc.perform(get("/customers/{id}", invalidId)
+                        .accept("application/single-customer-response+json;version=1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid UUID format"))
+                .andExpect(jsonPath("$.providedId").value(invalidId));
     }
 
     @Test
@@ -121,14 +159,12 @@ class CustomerControllerTest {
     }
     @Test
     void updateCustomerPrivileges_ShouldReturnBadRequest_WhenInputIsInvalid() throws Exception {
-        // Arrange
         Customer customer = customerService.createNewCustomer(
                 new CreateNewCustomer("Test Customer", "test@example.com", true));
 
-        // Act & Assert
         mockMvc.perform(put("/customers/" + customer.getCustomerId() + "/privileges")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("")) // Correct JSON null
+                        .content(""))
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Invalid privileges value"));
     }
@@ -231,7 +267,6 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("$.data[3].name").value("Diana Prince"))
                 .andExpect(jsonPath("$.data[4].name").value("Ethan Hunt"));
 
-        // Second page, size 3 (Normal case)
         mockMvc.perform(get("/customers/paginated")
                         .param("page", "1")
                         .param("size", "5")

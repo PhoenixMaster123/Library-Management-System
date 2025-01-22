@@ -4,6 +4,7 @@ import app.adapters.in.dto.CreateNewAuthor;
 import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.domain.port.AuthorDao;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 import java.util.Optional;
@@ -160,8 +162,13 @@ class AuthorServiceTest {
     @Nested
     @DisplayName("Integration Tests")
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @Transactional
+    //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
     class IntegrationTests {
-
+        @BeforeEach
+        void setup() {
+            authorRepository.deleteAll();
+        }
         @Test
         void createNewAuthor_IntegrationTest() {
             CreateNewAuthor newAuthor = new CreateNewAuthor("Jane Smith", "Author bio");
@@ -218,9 +225,9 @@ class AuthorServiceTest {
         @Test
         void testGetPaginatedAuthors_Success() {
 
-            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
-            Author author2 = new Author(null, "George Orwell", "English");
-            Author author3 = new Author(null, "Jane Austen", "English");
+            Author author1 = new Author(null, "Italo Calvino", "English");
+            Author author2 = new Author(null, "Lev Tolsto", "English");
+            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
 
             realAuthorDao.addAuthor(author1);
             realAuthorDao.addAuthor(author2);
@@ -233,35 +240,35 @@ class AuthorServiceTest {
 
 
             assertThat(authorsPage.getContent()).hasSize(2);
-            assertThat(authorsPage.getTotalElements()).isEqualTo(3);
+            assertThat(authorsPage.getTotalElements()).isEqualTo(13);
         }
 
         @Test
         void testSearchAuthors_Success() {
 
-            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
-            Author author2 = new Author(null, "George Orwell", "English");
-            Author author3 = new Author(null, "Jane Austen", "English");
+            Author author1 = new Author(null, "Italo Calvino", "English");
+            Author author2 = new Author(null, "Lev Tolsto", "English");
+            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
 
-            realAuthorDao.addAuthor(author1);
+                    realAuthorDao.addAuthor(author1);
             realAuthorDao.addAuthor(author2);
             realAuthorDao.addAuthor(author3);
 
             Pageable pageable = PageRequest.of(0, 10);
 
 
-            Page<Author> searchedAuthors = realAuthorService.searchAuthors("Tolkien", pageable);
+            Page<Author> searchedAuthors = realAuthorService.searchAuthors("Calvino", pageable);
 
 
             assertThat(searchedAuthors.getContent()).hasSize(1);
-            assertThat(searchedAuthors.getContent().getFirst().getName()).isEqualTo("J.R.R. Tolkien");
+            assertThat(searchedAuthors.getContent().getFirst().getName()).isEqualTo("Italo Calvino");
         }
 
         @Test
         void testSearchAuthors_NoResults() {
-            Author author1 = new Author(null, "J.R.R. Tolkien", "English");
-            Author author2 = new Author(null, "George Orwell", "English");
-            Author author3 = new Author(null, "Jane Austen", "English");
+            Author author1 = new Author(null, "Italo Calvino", "English");
+            Author author2 = new Author(null, "Lev Tolsto", "English");
+            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
 
             realAuthorDao.addAuthor(author1);
             realAuthorDao.addAuthor(author2);

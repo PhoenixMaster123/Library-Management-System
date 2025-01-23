@@ -40,28 +40,22 @@ public class CustomerDaoAdapterTest {
 
     @Test
     public void testAddCustomer() {
-        // Arrange
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer(customerId, "John Doe", "john.doe@example.com", true);
-        CustomerEntity customerEntity = new CustomerEntity(); // Create an empty entity
+        CustomerEntity customerEntity = new CustomerEntity();
 
-        // Set the fields directly on the entity
         customerEntity.setCustomerId(customerId);
         customerEntity.setName(customer.getName());
         customerEntity.setEmail(customer.getEmail());
         customerEntity.setPrivileges(customer.isPrivileges());
 
-        // Mock the save method to return the same customerEntity
         Mockito.when(customerRepository.save(Mockito.any(CustomerEntity.class))).thenReturn(customerEntity);
 
-        // Act
         customerDaoAdapter.addCustomer(customer);
 
-        // Assert
         ArgumentCaptor<CustomerEntity> captor = ArgumentCaptor.forClass(CustomerEntity.class);
         Mockito.verify(customerRepository).save(captor.capture());
 
-        // Check the captured argument
         CustomerEntity capturedEntity = captor.getValue();
         assertNotNull(capturedEntity, "Captured CustomerEntity should not be null");
         assertEquals(customer.getName(), capturedEntity.getName());
@@ -156,7 +150,6 @@ public class CustomerDaoAdapterTest {
         assertTrue(customer.isPresent());
         assertEquals(name, customer.get().getName());
 
-        // Assert that the transaction is mapped correctly
         List<Transaction> transactions = customer.get().getTransactions();
         assertEquals(1, transactions.size());
         assertEquals(transactionId, transactions.getFirst().getTransactionId());
@@ -180,7 +173,7 @@ public class CustomerDaoAdapterTest {
     @Test
     public void testUpdatePrivileges_Found() {
         UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(customerId, "John Doe", "john.doe@example.com", false); // Initially not privileged
+        Customer customer = new Customer(customerId, "John Doe", "john.doe@example.com", false);
 
         CustomerEntity customerEntity = new CustomerEntity(customerId, customer.getName(), customer.getEmail(), customer.isPrivileges(), new ArrayList<>());
 
@@ -190,7 +183,7 @@ public class CustomerDaoAdapterTest {
 
         Mockito.verify(customerRepository).findById(customerId);
         Mockito.verify(customerRepository).save(customerEntity);
-        assertFalse(customerEntity.isPrivileges()); // Verify that privileges are updated
+        assertFalse(customerEntity.isPrivileges());
     }
 
     @Test

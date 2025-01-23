@@ -48,7 +48,6 @@ public class TransaktionDaoAdapterTest {
 
     @Test
     public void testAddTransaction_Success(){
-        // Arrange
         UUID customerId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
         Transaction transaction = new Transaction(
@@ -62,25 +61,19 @@ public class TransaktionDaoAdapterTest {
         Optional<BookEntity> bookEntity = Optional.of(new BookEntity());
         bookEntity.get().setBookId(bookId);
 
-        // Mock the repositories
         Mockito.when(customerRepository.findById(customerId)).thenReturn(customerEntity);
         Mockito.when(bookRepository.findById(bookId)).thenReturn(bookEntity);
 
-        // Mock the save method to return a new TransactionEntity
         TransactionEntity savedTransactionEntity = new TransactionEntity();
-        savedTransactionEntity.setTransactionId(UUID.randomUUID());  // Set a transaction ID after save
+        savedTransactionEntity.setTransactionId(UUID.randomUUID());
         Mockito.when(transactionRepository.save(Mockito.any(TransactionEntity.class))).thenReturn(savedTransactionEntity);
 
-        // Act
         transactionDaoAdapter.addTransaction(transaction);
 
-        // Assert
         Mockito.verify(transactionRepository).save(Mockito.any(TransactionEntity.class));
 
-        // Ensure the ID is set after save
         assertNotNull(transaction.getTransactionId(), "Transaction ID should not be null");
 
-        // Ensure the customer and book are correctly set in the transaction
         assertEquals(transaction.getCustomer().getCustomerId(), customerId);
         assertEquals(transaction.getBook().getBookId(), bookId);
     }
@@ -89,7 +82,6 @@ public class TransaktionDaoAdapterTest {
 
     @Test
     public void testAddTransaction_CustomerNotFound(){
-        // Arrange
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), null, null, null,
                 new Customer(UUID.randomUUID(), "John Doe", "john.doe@example.com", true),
@@ -98,14 +90,12 @@ public class TransaktionDaoAdapterTest {
 
         Mockito.when(customerRepository.findById(transaction.getCustomer().getCustomerId())).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(EntityNotFoundException.class, () -> transactionDaoAdapter.addTransaction(transaction), "Expected EntityNotFoundException to be thrown");
     }
 
 
     @Test
     public void testAddTransaction_BookNotFound(){
-        // Arrange
         UUID customerId = UUID.randomUUID();
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), null, null, null,
@@ -118,39 +108,32 @@ public class TransaktionDaoAdapterTest {
         Mockito.when(customerRepository.findById(customerId)).thenReturn(customerEntity);
         Mockito.when(bookRepository.findById(transaction.getBook().getBookId())).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(EntityNotFoundException.class, () -> transactionDaoAdapter.addTransaction(transaction), "Expected EntityNotFoundException to be thrown");
     }
 
 
     @Test
     public void testGetTransactionsForBook() {
-        // Arrange
         UUID bookId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();  // Create a customer ID for testing
+        UUID customerId = UUID.randomUUID();
         List<TransactionEntity> transactionEntities = new ArrayList<>();
 
-        // Create a TransactionEntity and set its customer
         TransactionEntity transactionEntity = new TransactionEntity();
         transactionEntity.setTransactionId(UUID.randomUUID());
         CustomerEntity customerEntity = new CustomerEntity();
         customerEntity.setCustomerId(customerId);
-        transactionEntity.setCustomer(customerEntity);  // Set the customer for the transaction
+        transactionEntity.setCustomer(customerEntity);
 
-        // Create a BookEntity and set it in the transaction
         BookEntity bookEntity = new BookEntity();
-        bookEntity.setBookId(bookId);  // Set the bookId to match the one used in the test
-        transactionEntity.setBook(bookEntity);  // Set the book for the transaction
+        bookEntity.setBookId(bookId);
+        transactionEntity.setBook(bookEntity);
 
         transactionEntities.add(transactionEntity);
 
-        // Mock the repository to return the transaction with the correct bookId
         Mockito.when(transactionRepository.findByBookBookId(bookId)).thenReturn(transactionEntities);
 
-        // Act
         List<Transaction> transactions = transactionDaoAdapter.getTransactionsForBook(new Book(bookId, "TitelTest", "123124124", 2025, true, LocalDate.now(), new HashSet<>()));
 
-        // Assert
         assertEquals(1, transactions.size());
         assertEquals(customerId, transactions.getFirst().getCustomer().getCustomerId());
         Mockito.verify(transactionRepository).findByBookBookId(bookId);
@@ -158,10 +141,8 @@ public class TransaktionDaoAdapterTest {
 
     @Test
     public void testViewBorrowingHistory() {
-        // Arrange
         Pageable pageable = Pageable.ofSize(10);
 
-        // Create multiple TransactionEntities and set their customer
         TransactionEntity transactionEntity1 = new TransactionEntity();
         transactionEntity1.setTransactionId(UUID.randomUUID());
         transactionEntity1.setBorrowDate(LocalDate.now());
@@ -181,16 +162,12 @@ public class TransaktionDaoAdapterTest {
         transactionEntity1.setBook(bookEntity);
         transactionEntity2.setBook(bookEntity);
 
-        // Create a Page with the TransactionEntities
         Page<TransactionEntity> transactionEntityPage = new PageImpl<>(List.of(transactionEntity1, transactionEntity2), pageable, 2);
 
-        // Mock the repository to return the page of transactions
         Mockito.when(transactionRepository.findByCustomerCustomerId(customerEntity.getCustomerId(), pageable)).thenReturn(transactionEntityPage);
 
-        // Act
         Page<Transaction> transactions = transactionDaoAdapter.viewBorrowingHistory(customerEntity.getCustomerId(), pageable);
 
-        // Assert
         assertEquals(2, transactions.getTotalElements());
         Mockito.verify(transactionRepository).findByCustomerCustomerId(customerEntity.getCustomerId(), pageable);
         assertEquals(customerEntity.getCustomerId(), transactions.getContent().get(0).getCustomer().getCustomerId());
@@ -230,10 +207,8 @@ public class TransaktionDaoAdapterTest {
 
         Mockito.when(transactionRepository.findById(transactionId)).thenReturn(Optional.of(transactionEntity));
 
-        // Act
         Optional<Transaction> transaction = transactionDaoAdapter.findTransactionById(transactionId);
 
-        // Assert
         assertTrue(transaction.isPresent());
         assertEquals(transactionId, transaction.get().getTransactionId());
         assertEquals(customerId, transaction.get().getCustomer().getCustomerId());  // Check that the customer ID is correctly mapped
@@ -256,17 +231,14 @@ public class TransaktionDaoAdapterTest {
 
         Mockito.when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
 
-        // Act
         Optional<Transaction> transaction = transactionDaoAdapter.findTransactionById(transactionId);
 
-        // Assert
         assertFalse(transaction.isPresent());
         Mockito.verify(transactionRepository).findById(transactionId);
     }
 
     @Test
     public void testUpdateTransaction_Success() {
-        // Arrange
         UUID transactionId = UUID.randomUUID();
         Transaction transaction = new Transaction(transactionId, null, LocalDate.now(), LocalDate.now().plusDays(14));
         TransactionEntity transactionEntity = new TransactionEntity();
@@ -274,10 +246,8 @@ public class TransaktionDaoAdapterTest {
 
         Mockito.when(transactionRepository.findById(transactionId)).thenReturn(Optional.of(transactionEntity));
 
-        // Act
         transactionDaoAdapter.updateTransaction(transaction);
 
-        // Assert
         Mockito.verify(transactionRepository).findById(transactionId);
         Mockito.verify(transactionRepository).save(transactionEntity);
         assertEquals(transaction.getReturnDate(), transactionEntity.getReturnDate());
@@ -286,13 +256,11 @@ public class TransaktionDaoAdapterTest {
 
     @Test
     public void testUpdateTransaction_NotFound() {
-        // Arrange
         UUID transactionId = UUID.randomUUID();
         Transaction transaction = new Transaction(transactionId, null, LocalDate.now(), LocalDate.now().plusDays(14));
 
         Mockito.when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(EntityNotFoundException.class, () -> transactionDaoAdapter.updateTransaction(transaction), "Expected EntityNotFoundException to be thrown");
     }
 

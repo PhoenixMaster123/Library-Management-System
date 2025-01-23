@@ -1,26 +1,22 @@
-package app.domain.services;
+package app.domain.services.unitTests;
 
 import app.adapters.in.dto.CreateNewAuthor;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.domain.port.AuthorDao;
-import jakarta.transaction.Transactional;
+import app.domain.services.AuthorService;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 @SpringBootTest
@@ -31,14 +27,6 @@ class AuthorServiceTest {
     @Mock
     private AuthorDao mockedAuthorDao;
 
-    @Autowired
-    private AuthorDao realAuthorDao;
-
-    @Autowired
-    private AuthorService realAuthorService;
-
-    @Autowired
-    private AuthorRepository authorRepository;
 
     @BeforeAll
     void setup() {
@@ -156,133 +144,6 @@ class AuthorServiceTest {
             assertEquals(1, result.getContent().size());
             assertEquals("John Doe", result.getContent().getFirst().getName());
             Mockito.verify(mockedAuthorDao, Mockito.times(1)).searchAuthors(query, pageable);
-        }
-    }
-
-    @Nested
-    @DisplayName("Integration Tests")
-    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-    @Transactional
-    //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-    class IntegrationTests {
-        @BeforeEach
-        void setup() {
-            authorRepository.deleteAll();
-        }
-        @Test
-        void createNewAuthor_IntegrationTest() {
-            CreateNewAuthor newAuthor = new CreateNewAuthor("Jane Smith", "Author bio");
-
-            Author createdAuthor = realAuthorService.createNewAuthor(newAuthor);
-
-            assertNotNull(createdAuthor.getAuthorId());
-            assertEquals("Jane Smith", createdAuthor.getName());
-            assertTrue(realAuthorDao.searchAuthorByName("Jane Smith").isPresent());
-        }
-
-        @Test
-        void createNewAuthor_AuthorWithTheSameNameAlreadyExists_IntegrationTest() {
-            CreateNewAuthor newAuthor = new CreateNewAuthor("Jane Smith", "Author bio");
-            realAuthorService.createNewAuthor(newAuthor);
-            assertThrows(IllegalArgumentException.class, () -> realAuthorService.createNewAuthor(newAuthor));
-        }
-
-        @Test
-        void searchAuthorByName_IntegrationTest() {
-            String name = "Unique Author";
-            Author author = new Author(name, "Author bio");
-            realAuthorDao.addAuthor(author);
-
-            Optional<Author> result = realAuthorService.getAuthorByName(name);
-
-            assertTrue(result.isPresent());
-            assertEquals(name, result.get().getName());
-        }
-
-        @Test
-        void searchAuthorById_IntegrationTest() {
-
-            Author author = new Author("Author Name", "Author bio");
-
-
-            realAuthorDao.addAuthor(author);
-
-
-            Optional<Author> persistedAuthor = realAuthorDao.searchAuthorByName("Author Name");
-
-            assertTrue(persistedAuthor.isPresent());
-
-
-            Optional<Author> result = realAuthorService.findAuthorById(persistedAuthor.get().getAuthorId());
-
-
-            assertTrue(result.isPresent());
-            assertEquals("Author Name", result.get().getName());
-            assertEquals("Author bio", result.get().getBio());
-            assertEquals(persistedAuthor.get().getAuthorId(), result.get().getAuthorId());
-        }
-
-        @Test
-        void testGetPaginatedAuthors_Success() {
-
-            Author author1 = new Author(null, "Italo Calvino", "English");
-            Author author2 = new Author(null, "Lev Tolsto", "English");
-            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
-
-            realAuthorDao.addAuthor(author1);
-            realAuthorDao.addAuthor(author2);
-            realAuthorDao.addAuthor(author3);
-
-            Pageable pageable = PageRequest.of(0, 2);
-
-
-            Page<Author> authorsPage = realAuthorService.getPaginatedAuthors(pageable);
-
-
-            assertThat(authorsPage.getContent()).hasSize(2);
-            assertThat(authorsPage.getTotalElements()).isEqualTo(13);
-        }
-
-        @Test
-        void testSearchAuthors_Success() {
-
-            Author author1 = new Author(null, "Italo Calvino", "English");
-            Author author2 = new Author(null, "Lev Tolsto", "English");
-            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
-
-                    realAuthorDao.addAuthor(author1);
-            realAuthorDao.addAuthor(author2);
-            realAuthorDao.addAuthor(author3);
-
-            Pageable pageable = PageRequest.of(0, 10);
-
-
-            Page<Author> searchedAuthors = realAuthorService.searchAuthors("Calvino", pageable);
-
-
-            assertThat(searchedAuthors.getContent()).hasSize(1);
-            assertThat(searchedAuthors.getContent().getFirst().getName()).isEqualTo("Italo Calvino");
-        }
-
-        @Test
-        void testSearchAuthors_NoResults() {
-            Author author1 = new Author(null, "Italo Calvino", "English");
-            Author author2 = new Author(null, "Lev Tolsto", "English");
-            Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
-
-            realAuthorDao.addAuthor(author1);
-            realAuthorDao.addAuthor(author2);
-            realAuthorDao.addAuthor(author3);
-
-            Pageable pageable = PageRequest.of(0, 10);
-
-            Page<Author> searchedAuthors = realAuthorService.searchAuthors("NonexistentAuthor", pageable);
-
-            assertThat(searchedAuthors.getContent()).isEmpty();
-        }
-        @AfterEach
-        void tearDown() {
-            authorRepository.deleteAll();
         }
     }
 }

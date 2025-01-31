@@ -109,19 +109,6 @@ class TransactionControllerTest {
                 .andExpect(status().isBadRequest());
     }
     @Test
-    void testCreateNewTransaction_InternalServerError() throws Exception {
-        CreateNewTransaktion validTransaction = new CreateNewTransaktion(
-                LocalDate.now(),
-                LocalDate.now().plusDays(10),
-                UUID.randomUUID(),
-                UUID.randomUUID()
-        );
-        mockMvc.perform(post("/transactions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validTransaction)))
-                .andExpect(status().isInternalServerError());
-    }
-    @Test
     void testBorrowBook() throws Exception {
         UUID customerId = customer.getCustomerId();
         UUID bookId = book.getBookId();

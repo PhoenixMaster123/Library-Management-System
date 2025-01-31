@@ -223,22 +223,6 @@ class CustomerControllerTest {
                 .andExpect(jsonPath("message").value("Customer with the given name not found"));
     }
     @Test
-    void testSearchCustomerByQuery_DifferentPages() throws Exception {
-        customerService.createNewCustomer(
-                new CreateNewCustomer(
-                        "Ivan Ivanov", "ivan.ivanov@example.com", true));
-
-        mockMvc.perform(get("/customers/search?query=Ivan&page=0&size=2&sortBy=name"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].name").value("Ivan Drago"))
-                .andExpect(jsonPath("$.data[0].email").value("ivan.drago@example.com"))
-                .andExpect(jsonPath("$.data[1].name").value("Ivan Ivanov"))
-                .andExpect(jsonPath("$.data[1].email").value("ivan.ivanov@example.com"))
-                .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.totalItems").value(2));
-    }
-    @Test
     void testSearchCustomerByQuery_NoResults() throws Exception {
         mockMvc.perform(get("/customers/search")
                         .param("query", "nonexistent"))

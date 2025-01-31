@@ -27,7 +27,6 @@ public class BookDaoAdapter implements BookDao {
 
     @Override
     public void addBook(Book book) {
-        // Check if authors exist in the DB, or create them
         Set<AuthorEntity> authorEntities = book.getAuthors().stream()
                 .map(author -> {
                     Optional<AuthorEntity> existingAuthor = authorRepository.findByName(author.getName());
@@ -43,7 +42,6 @@ public class BookDaoAdapter implements BookDao {
                 })
                 .collect(Collectors.toSet());
 
-        // Persist the book with associated authors
         BookEntity bookEntity = BookEntity.builder()
                 .title(book.getTitle())
                 .isbn(book.getIsbn())
@@ -54,13 +52,12 @@ public class BookDaoAdapter implements BookDao {
 
         authorEntities.forEach(author -> {
             if (author.getBooks() == null) {
-                author.setBooks(new HashSet<>()); // Initialize books if it's null
+                author.setBooks(new HashSet<>());
             }
-            author.getBooks().add(bookEntity); // Add the book to the author's books
+            author.getBooks().add(bookEntity);
         });
-        // Save the entity and fetch the generated ID
         BookEntity savedEntity = bookRepository.save(bookEntity);
-        book.setBookId(savedEntity.getBookId()); // Set the generated ID in the domain model
+        book.setBookId(savedEntity.getBookId());
     }
 
     @Override
@@ -81,18 +78,14 @@ public class BookDaoAdapter implements BookDao {
         if (existingBook.isPresent()) {
             BookEntity book = existingBook.get();
 
-            // Remove the association between the book and authors
             for (AuthorEntity author : book.getAuthors()) {
-                author.getBooks().remove(book);  // Assuming you have a 'books' field in the AuthorEntity
+                author.getBooks().remove(book);
             }
 
-            // Clear the authors' reference in the book entity (optional, depending on your use case)
             book.setAuthors(new HashSet<>());
 
-            // Save the updated book (this step might not be necessary depending on your setup)
             bookRepository.save(book);
 
-            // Now delete the book itself
             bookRepository.deleteById(bookID);
         } else {
             throw new BookNotFoundException("Book not found with ID: " + bookID);
@@ -131,7 +124,6 @@ public class BookDaoAdapter implements BookDao {
     @Override
     public Page<Book> searchBooks(String query, Pageable pageable) {
         String lowerQuery = query.toLowerCase();
-        // Filter and paginate using a repository query
         Page<BookEntity> bookEntities = bookRepository.findBooksByQuery(lowerQuery, pageable);
 
         return bookEntities.map(this::mapToBook);

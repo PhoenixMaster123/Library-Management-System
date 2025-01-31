@@ -94,7 +94,7 @@ public class AuthorDaoAdapter implements AuthorDao {
                                 bookEntity.getPublicationYear(),
                                 bookEntity.isAvailability(),
                                 bookEntity.getCreated_at(),
-                                new HashSet<>() // Avoid circular references
+                                new HashSet<>()
                         ))
                         .collect(Collectors.toSet())
                         : new HashSet<>()

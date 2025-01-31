@@ -20,7 +20,6 @@ public class Author {
         this.bio = bio;
     }
 
-    // Constructor for explicitly setting the UUID
     public Author(UUID authorId, String name, String bio) {
         this.authorId = authorId;
         this.name = name;

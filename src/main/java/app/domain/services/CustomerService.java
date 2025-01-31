@@ -40,7 +40,6 @@ public class CustomerService {
     }
 
     public void updatePrivileges(UUID id, boolean privileges) {
-        // Fetch the customer and update privileges
         Customer customer = findCustomerById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found with ID: " + id));
 

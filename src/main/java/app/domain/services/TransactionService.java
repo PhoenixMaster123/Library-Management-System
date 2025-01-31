@@ -39,15 +39,12 @@ public class TransactionService {
             throw new IllegalArgumentException("Due date must be in the future");
         }
 
-        // Fetch the customer
         Customer customer = customerDao.getCustomer(newTransaktion.getCustomerId())
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
 
-        // Fetch the book
         Book book = bookDao.searchBookById(newTransaktion.getBookId())
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        // Create the transaction
         Transaction transaction = new Transaction(
                 newTransaktion.getBorrowDate(),
                 newTransaktion.getDueDate(),
@@ -55,7 +52,6 @@ public class TransactionService {
                 book
         );
 
-        // Save the transaction
         transactionDao.addTransaction(transaction);
         return transaction;
     }
@@ -67,18 +63,16 @@ public class TransactionService {
             throw new EntityNotFoundException("No transaction found for the given book.");
         }
 
-        Transaction transaction = transactions.getFirst(); // Assuming one active transaction per book
+        Transaction transaction = transactions.getFirst();
         transaction.setReturnDate(LocalDate.now());
         transaction.getBook().setAvailable(true);
 
-        // Persist the updated transaction and book
         transactionDao.updateTransaction(transaction);
         bookDao.updateBook(transaction.getBook().getBookId(), transaction.getBook());
 
         return transaction.getTransactionId().toString();
     }
     public Transaction borrowBook(UUID customerId, UUID bookId) {
-        // Fetch the book and validate availability
         Book book = bookDao.searchBookById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found."));
 
@@ -86,7 +80,6 @@ public class TransactionService {
             throw new RuntimeException("Book is not available for borrowing.");
         }
 
-        // Fetch the customer
         Customer customer = customerDao.getCustomer(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found."));
 
@@ -94,18 +87,15 @@ public class TransactionService {
             throw new RuntimeException("Customer does not have borrowing privileges.");
         }
 
-        // Create a new transaction
         Transaction transaction = new Transaction();
         transaction.setTransactionId(UUID.randomUUID());
         transaction.setBorrowDate(LocalDate.now());
-        transaction.setDueDate(LocalDate.now().plusWeeks(2)); // Example: 2-week loan period
+        transaction.setDueDate(LocalDate.now().plusWeeks(2));
         transaction.setCustomer(customer);
         transaction.setBook(book);
 
-        // Save the transaction
         transactionDao.addTransaction(transaction);
 
-        // Update book availability
         book.setAvailable(false);
         bookDao.updateBook(bookId, book);
         return transaction;
@@ -128,15 +118,14 @@ public class TransactionService {
         Customer customer = customerDao.getCustomer(customerId)
                 .orElseThrow(() -> new IllegalStateException("Customer not found"));
 
-        // Create the transaction with custom dates
         Transaction transaction = new Transaction();
         transaction.setTransactionId(UUID.randomUUID());
-        transaction.setBorrowDate(borrowDate);  // Borrow date
+        transaction.setBorrowDate(borrowDate);
         transaction.setDueDate(borrowDate.plusWeeks(2));
         transaction.setCustomer(customer);
         transaction.setBook(book);
 
-        book.setAvailable(false); // Mark the book as borrowed
+        book.setAvailable(false);
         bookDao.updateBook(bookId, book);
         transactionDao.addTransaction(transaction);
     }
@@ -148,7 +137,7 @@ public class TransactionService {
         }
 
         transactions.forEach(transaction -> {
-            if (transaction.getReturnDate() == null) { // Update only active transactions
+            if (transaction.getReturnDate() == null) {
                 transaction.setReturnDate(returnDate);
                 transaction.getBook().setAvailable(true);
                 transactionDao.updateTransaction(transaction);

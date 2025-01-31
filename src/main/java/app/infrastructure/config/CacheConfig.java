@@ -7,7 +7,6 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 @Configuration
 public class CacheConfig {
-
     @Bean
     public Filter shallowEtagFilter() {
         return new ShallowEtagHeaderFilter();

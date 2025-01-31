@@ -90,7 +90,6 @@ public class TransactionController {
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Transaction> transactionsPage = transactionService.viewBorrowingHistory(customerId, pageable);
 
-        // Add pagination links to headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("self", "<" + linkTo(methodOn(TransactionController.class)
                 .viewBorrowingHistory(customerId, Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
@@ -104,7 +103,6 @@ public class TransactionController {
                     .viewBorrowingHistory(customerId, Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Build response body
         if (transactionsPage.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "No transactions found for this customer"));

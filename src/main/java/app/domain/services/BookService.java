@@ -36,13 +36,11 @@ public class BookService {
             throw new IllegalArgumentException("Book with the same isbn already exists.");
         }
 
-        // Resolve authors (fetch existing or create new)
         Set<Author> authors = bookToCreate.getAuthors().stream()
                 .map(authorDto -> authorService.getAuthorByName(authorDto.getName())
                         .orElseGet(() -> authorService.createNewAuthor(authorDto)))
                 .collect(Collectors.toSet());
 
-        // Create the book
         Book book = new Book(
                 bookToCreate.getTitle(),
                 bookToCreate.getIsbn(),

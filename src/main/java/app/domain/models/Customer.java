@@ -18,7 +18,6 @@ public class Customer {
     private boolean privileges;
     private final List<Transaction> transactions = new LinkedList<>();
 
-    // Constructor for existing customers
     public Customer(UUID customerId, String name, String email, boolean privileges) {
         this.customerId = customerId;
         this.name = name;

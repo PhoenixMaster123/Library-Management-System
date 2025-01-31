@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
-
     private final BookService bookService;
     private final CustomerService customerService;
     private final TransactionService transactionService;
@@ -88,7 +87,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 new CreateNewBook(
                         "The Odyssey",
                         "9780140268867",
-                        -800, // Assuming BC era, use negative values.
+                        -800,
                         List.of(new CreateNewAuthor("Homer", "Ancient Greek poet.")))
         );
 
@@ -98,7 +97,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 UUID bookId = bookRepository.findBooksByIsbn(book.getIsbn())
                         .orElseThrow(() -> new IllegalStateException("Book not found"))
                         .getBookId();
-                bookIds.add(bookId); // Store the ID
+                bookIds.add(bookId);
                 System.out.println("Seeded book: " + book.getTitle());
             } catch (IllegalArgumentException e) {
                 System.out.println("Skipping book: " + book.getTitle() + " - " + e.getMessage());
@@ -129,20 +128,16 @@ public class DatabaseSeeder implements CommandLineRunner {
                 System.out.println("Skipping customer: " + customer.getName() + " - " + e.getMessage());
             }
         });
-        // Seed transactions
         customerIds.forEach(customerId -> {
             bookIds.forEach(bookId -> {
                 try {
-                    // Generate a random borrow date (e.g., within the last 30 days)
                     LocalDate borrowDate = LocalDate.now().minusDays(ThreadLocalRandom.current().nextInt(1, 31));
-                    // Return date is borrow date + a random number of days (7 to 21 days)
                     LocalDate returnDate = borrowDate.plusDays(ThreadLocalRandom.current().nextInt(7, 21));
 
-                    transactionService.borrowBookWithDates(customerId, bookId, borrowDate); // Borrow book with dates
+                    transactionService.borrowBookWithDates(customerId, bookId, borrowDate);
                     System.out.println("Borrowed book: " + bookId + " by customer: " + customerId + " on " + borrowDate);
 
-                    // Simulate book return
-                    transactionService.returnBookWithDates(bookId, returnDate); // Return book
+                    transactionService.returnBookWithDates(bookId, returnDate);
                     System.out.println("Returned book: " + bookId + " by customer: " + customerId + " on " + returnDate);
                 } catch (Exception e) {
                     System.out.println("Skipping transaction for customer " + customerId + " and book " + bookId + " - " + e.getMessage());

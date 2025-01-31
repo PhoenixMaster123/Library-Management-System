@@ -24,7 +24,7 @@ public class AuthorService {
         }
         Author author = new Author(createNewAuthor.getName(), createNewAuthor.getBio());
         authorDao.addAuthor(author);
-        return authorDao.searchAuthorByName(createNewAuthor.getName()) // Retrieve the persisted entity with the generated ID
+        return authorDao.searchAuthorByName(createNewAuthor.getName())
                 .orElseThrow(() -> new IllegalStateException("Author was not properly saved"));
     }
     public void updateAuthor(UUID authorId, Author author) {

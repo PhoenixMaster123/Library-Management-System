@@ -27,7 +27,7 @@ public class Transaction {
     }
 
     public Transaction(LocalDate borrowDate, LocalDate dueDate, Customer customer, Book book) {
-        this.transactionId = UUID.randomUUID(); // Generate a random UUID
+        this.transactionId = UUID.randomUUID();
         this.borrowDate = borrowDate;
         this.dueDate = dueDate;
         this.returnDate = null;

@@ -50,7 +50,6 @@ public class BookController {
         PageRequest pageable = PageRequest.of(currentPage, pageSize, Sort.Direction.ASC, sortField);
         Page<Book> books = bookService.getPaginatedBooks(pageable);
 
-        // Add pagination links to headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("self", "<" + linkTo(methodOn(BookController.class)
                 .getAllBooks(Optional.of(currentPage), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"self\"");
@@ -64,7 +63,6 @@ public class BookController {
                     .getAllBooks(Optional.of(currentPage + 1), Optional.of(pageSize), Optional.of(sortField))).toUri() + ">; rel=\"next\"");
         }
 
-        // Build response body
         if (books.isEmpty()) {
             Map<String, Object> errorResponse = Map.of(
                     "message", "There are no books on this page.",
@@ -80,7 +78,6 @@ public class BookController {
         response.put("currentPage", books.getNumber());
         response.put("totalItems", books.getTotalElements());
 
-        // Return the response with headers
         return ResponseEntity.ok().headers(headers).body(response);
     }
 

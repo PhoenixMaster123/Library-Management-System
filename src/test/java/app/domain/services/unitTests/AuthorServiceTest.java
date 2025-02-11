@@ -34,9 +34,7 @@ class AuthorServiceTest {
         mockedAuthorDao = mock(AuthorDao.class);
     }
 
-    @Nested
-    @DisplayName("Unit Tests")
-    class UnitTests {
+
 
         @Test
         void createNewAuthor_Success() {
@@ -147,4 +145,4 @@ class AuthorServiceTest {
             Mockito.verify(mockedAuthorDao, Mockito.times(1)).searchAuthors(query, pageable);
         }
     }
-}
+

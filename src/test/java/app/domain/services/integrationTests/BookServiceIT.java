@@ -8,6 +8,7 @@ import app.domain.models.Book;
 import app.domain.port.BookDao;
 import app.domain.services.BookService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("integration")
 public class BookServiceIT {
     @Autowired
     private BookDao realBookDao;

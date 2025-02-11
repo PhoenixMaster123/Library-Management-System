@@ -10,7 +10,9 @@ import app.adapters.in.dto.CreateNewTransaktion;
 import app.domain.services.TransactionService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -31,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("unit")
 class TransactionServiceTest {
         @Mock
         private TransactionDao transactionDao;

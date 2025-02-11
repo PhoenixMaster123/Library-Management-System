@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("unit")
 class AuthorServiceTest {
 
     @Mock

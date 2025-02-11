@@ -6,6 +6,7 @@ import app.adapters.out.MySQL.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.infrastructure.exceptions.AuthorNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -24,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 class AuthorDaoAdapterTest {
 
     @Mock

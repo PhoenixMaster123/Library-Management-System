@@ -5,6 +5,7 @@ import app.domain.port.CustomerDao;
 import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.services.CustomerService;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 public class CustomerServiceTest {
 
     @Mock

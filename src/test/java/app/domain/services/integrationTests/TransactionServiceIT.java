@@ -12,7 +12,9 @@ import app.domain.port.CustomerDao;
 import app.domain.port.TransactionDao;
 import app.domain.services.TransactionService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("integration")
 public class TransactionServiceIT {
 
     @Autowired

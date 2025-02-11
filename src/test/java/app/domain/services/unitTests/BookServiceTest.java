@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("unit")
 class BookServiceTest {
     private BookDao mockedBookDao;
     private AuthorService mockedAuthorService;

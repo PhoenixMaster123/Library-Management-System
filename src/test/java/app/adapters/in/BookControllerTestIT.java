@@ -10,6 +10,7 @@ import app.adapters.in.dto.CreateNewBook;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @WithMockUser(username = "user")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class BookControllerTest {
+@Tag("integration")
+public class BookControllerTestIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -109,7 +111,6 @@ public class BookControllerTest {
                         2021, List.of(
                         new CreateNewAuthor("Test Author", "test"))));
 
-        // Define the book update details
         Book bookToUpdate = new Book();
         bookToUpdate.setTitle("Updated Title");
         bookToUpdate.setIsbn("1234567890");
@@ -118,8 +119,7 @@ public class BookControllerTest {
         bookToUpdate.setCreatedAt(LocalDate.now());
         bookToUpdate.setAuthors(Set.of(new Author("Updated Author", "updated")));
 
-        // Perform the PUT request to update the book
-        mockMvc.perform(put("/books/" + createdBook.getBookId())  // Use the saved book's ID
+        mockMvc.perform(put("/books/" + createdBook.getBookId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bookToUpdate)))
                 .andExpect(status().isOk())

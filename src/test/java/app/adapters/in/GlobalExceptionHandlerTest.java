@@ -2,12 +2,14 @@ package app.adapters.in;
 
 import app.infrastructure.exceptions.BookNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("unit")
 class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler globalExceptionHandler;
     @BeforeEach

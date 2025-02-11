@@ -13,6 +13,7 @@ import app.domain.models.Customer;
 import app.domain.models.Transaction;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -28,6 +29,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 public class TransaktionDaoAdapterTest {
 
     @Mock

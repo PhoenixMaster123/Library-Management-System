@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("integration")
 public class AuthorServiceIT {
     @Autowired
     private AuthorDao realAuthorDao;

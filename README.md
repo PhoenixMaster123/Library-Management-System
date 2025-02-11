@@ -38,6 +38,11 @@ The Library Management System is a Java-based backend application that facilitat
 3. **Run the Application**
    ```bash
    mvn spring-boot:run
+   
+## Run integration tests using Docker
+
+* Call `mvn -f pom-docker.xml verify`
+
 ## Backend Design
 **Entities** <br>
 Book having attributes: <br>

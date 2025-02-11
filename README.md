@@ -32,17 +32,19 @@ The Library Management System is a Java-based backend application that facilitat
    ```bash
    git clone https://github.com/your-username/Library-Management-System.git
    cd LibraryManagementSystem
+   ```
 2. **Build the Application**
    ```bash
    mvn clean install
+   ```
 3. **Run the Application**
    ```bash
    mvn spring-boot:run
-   
+   ```
 ## Run integration tests using Docker
-
-* Call `mvn -f pom-docker.xml verify`
-
+ ```bash
+mvn -f pom-docker.xml verify
+```
 ## Backend Design
 **Entities** <br>
 Book having attributes: <br>

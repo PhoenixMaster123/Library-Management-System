@@ -1,6 +1,6 @@
 # Library Management System
 
-The Library Management System is a Java-based backend application that facilitates the management of books, authors, and transactions for a library. It provides functionalities to manage book catalogs, register customers, process borrowing and returning transactions, and view borrowing history.
+The Library Management System is a Java-based backend application that follows the Hexagonal Architecture pattern. It facilitates the management of books, authors, and transactions for a library. The system provides functionalities to manage book catalogs, register customers, process borrowing and returning transactions, and view borrowing history.
 
 ## Technologies and Dependencies Used
 
@@ -13,8 +13,8 @@ The Library Management System is a Java-based backend application that facilitat
 - **[Docker](https://www.docker.com/)**: Containerization for deployment.
 - **[JUnit](https://junit.org/)**: Testing framework for unit and integration tests.
 - **[Lombok](https://projectlombok.org/)**: Reduces the time of writing Java boilerplate code.
-- **Caching Strategy**: Enhances application performance by storing frequently accessed data in memory.
-- **Hypermedia Principle**: REST API usability by providing navigable links between resources.
+- **[Caching Strategy](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/CacheControl.html)**: Improves efficiency by using HTTP caching, reducing redundant requests, and optimizing client-server interactions.
+- **[Hypermedia Principle](https://spring.io/guides/gs/rest-hateoas)**: REST API usability by providing navigable links between resources.
 
 
 
@@ -49,11 +49,11 @@ mvn verify
  ```bash
 mvn -f pom-docker.xml verify
 ```
-## Lizenz ⚖️
+## License ⚖️
 
-Dieses Projekt steht unter der MIT-Lizenz. Mehr Details findest du in der Datei [LICENSE](LICENSE).
+This project is licensed under the MIT License. For more details, please refer to the file: [LICENSE](LICENSE).
 
-## Autoren 👨‍💻👩‍💻
+## Authors 👨‍💻👩‍💻
 
 *   Kristian Popov
 *   Enrico Ebert

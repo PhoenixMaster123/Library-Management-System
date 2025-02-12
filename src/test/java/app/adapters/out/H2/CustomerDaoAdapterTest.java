@@ -1,8 +1,8 @@
-package app.adapters.out.MySQL;
+package app.adapters.out.H2;
 
-import app.adapters.out.MySQL.entity.CustomerEntity;
-import app.adapters.out.MySQL.entity.TransactionEntity;
-import app.adapters.out.MySQL.repositories.CustomerRepository;
+import app.adapters.out.H2.entity.CustomerEntity;
+import app.adapters.out.H2.entity.TransactionEntity;
+import app.adapters.out.H2.repositories.CustomerRepository;
 import app.domain.models.Customer;
 import app.domain.models.Transaction;
 import jakarta.persistence.EntityNotFoundException;

@@ -1,9 +1,9 @@
 package app.domain.services.integrationTests;
 
 import app.adapters.in.dto.CreateNewTransaktion;
-import app.adapters.out.MySQL.repositories.BookRepository;
-import app.adapters.out.MySQL.repositories.CustomerRepository;
-import app.adapters.out.MySQL.repositories.TransactionRepository;
+import app.adapters.out.H2.repositories.BookRepository;
+import app.adapters.out.H2.repositories.CustomerRepository;
+import app.adapters.out.H2.repositories.TransactionRepository;
 import app.domain.models.Book;
 import app.domain.models.Customer;
 import app.domain.models.Transaction;

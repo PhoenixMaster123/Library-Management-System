@@ -1,7 +1,7 @@
 package app.domain.services.integrationTests;
 
 import app.adapters.in.dto.CreateNewCustomer;
-import app.adapters.out.MySQL.repositories.CustomerRepository;
+import app.adapters.out.H2.repositories.CustomerRepository;
 import app.domain.models.Customer;
 import app.domain.port.CustomerDao;
 import app.domain.services.CustomerService;

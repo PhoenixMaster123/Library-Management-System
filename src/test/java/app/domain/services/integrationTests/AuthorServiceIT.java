@@ -1,7 +1,7 @@
 package app.domain.services.integrationTests;
 
 import app.adapters.in.dto.CreateNewAuthor;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
+import app.adapters.out.H2.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.domain.port.AuthorDao;
 import app.domain.services.AuthorService;

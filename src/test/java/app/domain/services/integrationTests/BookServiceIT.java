@@ -2,8 +2,8 @@ package app.domain.services.integrationTests;
 
 import app.adapters.in.dto.CreateNewAuthor;
 import app.adapters.in.dto.CreateNewBook;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
-import app.adapters.out.MySQL.repositories.BookRepository;
+import app.adapters.out.H2.repositories.AuthorRepository;
+import app.adapters.out.H2.repositories.BookRepository;
 import app.domain.models.Book;
 import app.domain.port.BookDao;
 import app.domain.services.BookService;

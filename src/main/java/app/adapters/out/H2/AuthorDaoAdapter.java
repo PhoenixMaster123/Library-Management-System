@@ -1,7 +1,7 @@
-package app.adapters.out.MySQL;
+package app.adapters.out.H2;
 
-import app.adapters.out.MySQL.entity.AuthorEntity;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
+import app.adapters.out.H2.entity.AuthorEntity;
+import app.adapters.out.H2.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.domain.models.Book;
 import app.domain.port.AuthorDao;

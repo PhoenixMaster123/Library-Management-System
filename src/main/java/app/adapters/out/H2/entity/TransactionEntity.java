@@ -1,4 +1,4 @@
-package app.adapters.out.MySQL.entity;
+package app.adapters.out.H2.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

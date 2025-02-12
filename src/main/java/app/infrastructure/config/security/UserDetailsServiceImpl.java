@@ -1,7 +1,7 @@
 package app.infrastructure.config.security;
 
-import app.adapters.out.MySQL.entity.UserEntity;
-import app.adapters.out.MySQL.repositories.UserRepository;
+import app.adapters.out.H2.entity.UserEntity;
+import app.adapters.out.H2.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

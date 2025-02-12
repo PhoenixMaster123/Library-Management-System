@@ -1,8 +1,8 @@
 package app.adapters.in;
 
 import app.adapters.in.dto.CreateNewAuthor;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
-import app.adapters.out.MySQL.repositories.BookRepository;
+import app.adapters.out.H2.repositories.AuthorRepository;
+import app.adapters.out.H2.repositories.BookRepository;
 import app.domain.models.Author;
 import app.domain.models.Book;
 import app.domain.services.BookService;

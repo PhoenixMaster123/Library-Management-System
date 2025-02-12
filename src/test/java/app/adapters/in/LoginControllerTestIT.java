@@ -1,7 +1,7 @@
 package app.adapters.in;
 
-import app.adapters.out.MySQL.entity.UserEntity;
-import app.adapters.out.MySQL.repositories.UserRepository;
+import app.adapters.out.H2.entity.UserEntity;
+import app.adapters.out.H2.repositories.UserRepository;
 import app.domain.models.AccountCredentials;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;

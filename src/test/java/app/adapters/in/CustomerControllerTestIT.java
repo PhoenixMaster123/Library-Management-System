@@ -1,7 +1,7 @@
 package app.adapters.in;
 
 import app.adapters.in.dto.CreateNewCustomer;
-import app.adapters.out.MySQL.repositories.CustomerRepository;
+import app.adapters.out.H2.repositories.CustomerRepository;
 import app.domain.models.Customer;
 import app.domain.services.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;

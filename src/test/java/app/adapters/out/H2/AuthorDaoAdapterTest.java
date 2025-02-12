@@ -1,8 +1,8 @@
-package app.adapters.out.MySQL;
+package app.adapters.out.H2;
 
-import app.adapters.out.MySQL.entity.AuthorEntity;
-import app.adapters.out.MySQL.entity.BookEntity;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
+import app.adapters.out.H2.entity.AuthorEntity;
+import app.adapters.out.H2.entity.BookEntity;
+import app.adapters.out.H2.repositories.AuthorRepository;
 import app.domain.models.Author;
 import app.infrastructure.exceptions.AuthorNotFoundException;
 import org.junit.jupiter.api.BeforeEach;

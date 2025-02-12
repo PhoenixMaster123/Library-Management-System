@@ -1,6 +1,6 @@
-package app.adapters.out.MySQL.repositories;
+package app.adapters.out.H2.repositories;
 
-import app.adapters.out.MySQL.entity.UserEntity;
+import app.adapters.out.H2.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

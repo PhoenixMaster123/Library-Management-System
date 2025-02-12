@@ -1,6 +1,5 @@
-package app.adapters.out.MySQL.entity;
+package app.adapters.out.H2.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.*;

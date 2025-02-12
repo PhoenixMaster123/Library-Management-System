@@ -1,12 +1,12 @@
-package app.adapters.out.MySQL;
+package app.adapters.out.H2;
 
-import app.adapters.out.MySQL.entity.AuthorEntity;
-import app.adapters.out.MySQL.entity.BookEntity;
-import app.adapters.out.MySQL.entity.CustomerEntity;
-import app.adapters.out.MySQL.entity.TransactionEntity;
-import app.adapters.out.MySQL.repositories.BookRepository;
-import app.adapters.out.MySQL.repositories.CustomerRepository;
-import app.adapters.out.MySQL.repositories.TransactionRepository;
+import app.adapters.out.H2.entity.AuthorEntity;
+import app.adapters.out.H2.entity.BookEntity;
+import app.adapters.out.H2.entity.CustomerEntity;
+import app.adapters.out.H2.entity.TransactionEntity;
+import app.adapters.out.H2.repositories.BookRepository;
+import app.adapters.out.H2.repositories.CustomerRepository;
+import app.adapters.out.H2.repositories.TransactionRepository;
 import app.domain.models.Author;
 import app.domain.models.Book;
 import app.domain.models.Customer;

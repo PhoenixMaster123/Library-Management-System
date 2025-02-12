@@ -1,4 +1,4 @@
-package app.adapters.out.MySQL;
+package app.adapters.out.H2;
 
 import app.domain.models.Author;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +17,10 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.*;
 
-import app.adapters.out.MySQL.entity.AuthorEntity;
-import app.adapters.out.MySQL.entity.BookEntity;
-import app.adapters.out.MySQL.repositories.AuthorRepository;
-import app.adapters.out.MySQL.repositories.BookRepository;
+import app.adapters.out.H2.entity.AuthorEntity;
+import app.adapters.out.H2.entity.BookEntity;
+import app.adapters.out.H2.repositories.AuthorRepository;
+import app.adapters.out.H2.repositories.BookRepository;
 
 import app.domain.models.Book;
 import app.infrastructure.exceptions.BookNotFoundException;

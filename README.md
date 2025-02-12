@@ -49,4 +49,12 @@ mvn verify
  ```bash
 mvn -f pom-docker.xml verify
 ```
+## Lizenz ⚖️
+
+Dieses Projekt steht unter der MIT-Lizenz. Mehr Details findest du in der Datei [LICENSE](LICENSE).
+
+## Autoren 👨‍💻👩‍💻
+
+*   Kristian Popov
+*   Enrico Ebert
 

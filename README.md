@@ -49,6 +49,11 @@ mvn verify
  ```bash
 mvn -f pom-docker.xml verify
 ```
+## Quick Guide: Library Management System Overview (German)
+https://github.com/user-attachments/assets/a1c67f63-c21c-4727-a8f5-aa32ec804d40
+
+Link for the video: [libMS](https://github.com/user-attachments/assets/a1c67f63-c21c-4727-a8f5-aa32ec804d40)
+
 ## License ⚖️
 
 This project is licensed under the MIT License. For more details, please refer to the file: [LICENSE](LICENSE).

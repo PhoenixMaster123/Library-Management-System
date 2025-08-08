@@ -1,21 +1,27 @@
 package app.infrastructure.config.database;
 
-import app.adapters.in.dto.CreateNewAuthor;
 import app.adapters.in.dto.CreateNewBook;
 import app.adapters.in.dto.CreateNewCustomer;
+import app.adapters.in.dto.importData.ImportBookDto;
+import app.adapters.in.dto.importData.ImportCustomerDto;
 import app.adapters.out.H2.repositories.BookRepository;
 import app.adapters.out.H2.repositories.CustomerRepository;
 import app.domain.services.BookService;
 import app.domain.services.CustomerService;
 import app.domain.services.TransactionService;
+import com.google.gson.Gson;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
@@ -24,126 +30,148 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final TransactionService transactionService;
     private final BookRepository bookRepository;
     private final CustomerRepository customerRepository;
+    private final Gson gson;
+    private final ModelMapper mapper;
 
-    public DatabaseSeeder(BookService bookService, CustomerService customerService, TransactionService transactionService, BookRepository bookRepository, CustomerRepository customerRepository) {
+    public DatabaseSeeder(BookService bookService, CustomerService customerService, TransactionService transactionService, BookRepository bookRepository, CustomerRepository customerRepository, Gson gson, ModelMapper mapper) {
         this.bookService = bookService;
         this.customerService = customerService;
         this.transactionService = transactionService;
         this.bookRepository = bookRepository;
         this.customerRepository = customerRepository;
+        this.gson = gson;
+        this.mapper = mapper;
     }
 
     @Override
-    public void run(String... args) {
-        List<UUID> customerIds = new LinkedList<>();
-        List<UUID> bookIds = new LinkedList<>();
+    public void run(String... args){
+        List<UUID> customerIds;
+        List<UUID> bookIds;
 
-        List<CreateNewBook> booksToSeed = List.of(
-                new CreateNewBook(
-                        "The Great Gatsby",
-                        "9780743273565",
-                        1925,
-                        List.of(new CreateNewAuthor("F. Scott Fitzgerald", "An American novelist."))),
-                new CreateNewBook(
-                        "To Kill a Mockingbird",
-                        "9780061120084",
-                        1960,
-                        List.of(new CreateNewAuthor("Harper Lee", "An American novelist best known for 'To Kill a Mockingbird'."))),
-                new CreateNewBook(
-                        "1984",
-                        "9780451524935",
-                        1949,
-                        List.of(new CreateNewAuthor("George Orwell", "British writer and journalist."))),
-                new CreateNewBook(
-                        "Moby Dick",
-                        "9780142437247",
-                        1851,
-                        List.of(new CreateNewAuthor("Herman Melville", "An American novelist and poet."))),
-                new CreateNewBook(
-                        "War and Peace",
-                        "9780199232765",
-                        1869,
-                        List.of(new CreateNewAuthor("Leo Tolstoy", "A Russian writer and philosopher."))),
-                new CreateNewBook(
-                        "Pride and Prejudice",
-                        "9780141439518",
-                        1813,
-                        List.of(new CreateNewAuthor("Jane Austen", "An English novelist known for her romantic fiction."))),
-                new CreateNewBook(
-                        "The Catcher in the Rye",
-                        "9780316769488",
-                        1951,
-                        List.of(new CreateNewAuthor("J.D. Salinger", "An American writer."))),
-                new CreateNewBook(
-                        "The Hobbit",
-                        "9780261102217",
-                        1937,
-                        List.of(new CreateNewAuthor("J.R.R. Tolkien", "An English writer, poet, and academic."))),
-                new CreateNewBook(
-                        "The Divine Comedy",
-                        "9780199535645",
-                        1320,
-                        List.of(new CreateNewAuthor("Dante Alighieri", "An Italian poet, writer, and philosopher."))),
-                new CreateNewBook(
-                        "The Odyssey",
-                        "9780140268867",
-                        -800,
-                        List.of(new CreateNewAuthor("Homer", "Ancient Greek poet.")))
-        );
+        bookIds = importBooksFromJson();
+        customerIds = importCustomersFromJson();
+        boolean imported = importTransactionsFromJson();
 
-        booksToSeed.forEach(book -> {
-            try {
-                bookService.createNewBook(book);
-                UUID bookId = bookRepository.findBooksByIsbn(book.getIsbn())
-                        .orElseThrow(() -> new IllegalStateException("Book not found"))
-                        .getBookId();
-                bookIds.add(bookId);
-                System.out.println("Seeded book: " + book.getTitle());
-            } catch (IllegalArgumentException e) {
-                System.out.println("Skipping book: " + book.getTitle() + " - " + e.getMessage());
-            }
-        });
-        List<CreateNewCustomer> customersToSeed = List.of(
-                new CreateNewCustomer("Alice Smith", "alice.smith@example.com", true),
-                new CreateNewCustomer("Bob Johnson", "bob.johnson@example.com", true),
-                new CreateNewCustomer("Charlie Brown", "charlie.brown@example.com", true),
-                new CreateNewCustomer("Diana Prince", "diana.prince@example.com", true),
-                new CreateNewCustomer("Ethan Hunt", "ethan.hunt@example.com", true),
-                new CreateNewCustomer("Fiona Gallagher", "fiona.gallagher@example.com", true),
-                new CreateNewCustomer("George Bailey", "george.bailey@example.com", true),
-                new CreateNewCustomer("Hannah Abbott", "hannah.abbott@example.com", true),
-                new CreateNewCustomer("Ivan Drago", "ivan.drago@example.com", true),
-                new CreateNewCustomer("Julia Roberts", "julia.roberts@example.com", true)
-        );
-
-        customersToSeed.forEach(customer -> {
-            try {
-                customerService.createNewCustomer(customer);
-                UUID customerId = customerRepository.findByName(customer.getName())
-                        .orElseThrow(() -> new IllegalStateException("Customer not found"))
-                        .getCustomerId();
-                customerIds.add(customerId);
-                System.out.println("Seeded customer: " + customer.getName());
-            } catch (Exception e) {
-                System.out.println("Skipping customer: " + customer.getName() + " - " + e.getMessage());
-            }
-        });
-        customerIds.forEach(customerId -> {
-            bookIds.forEach(bookId -> {
+        if (!imported) {
+            int max = Math.min(3, Math.min(customerIds.size(), bookIds.size()));
+            for (int i = 0; i < max; i++) {
+                UUID customerId = customerIds.get(i);
+                UUID bookId = bookIds.get(i);
                 try {
-                    LocalDate borrowDate = LocalDate.now().minusDays(ThreadLocalRandom.current().nextInt(1, 31));
-                    LocalDate returnDate = borrowDate.plusDays(ThreadLocalRandom.current().nextInt(7, 21));
-
+                    LocalDate borrowDate = LocalDate.now();
                     transactionService.borrowBookWithDates(customerId, bookId, borrowDate);
-                    System.out.println("Borrowed book: " + bookId + " by customer: " + customerId + " on " + borrowDate);
-
-                    transactionService.returnBookWithDates(bookId, returnDate);
-                    System.out.println("Returned book: " + bookId + " by customer: " + customerId + " on " + returnDate);
+                    System.out.println("[Seeder Fallback] Borrowed book: " + bookId + " by customer: " + customerId + " on " + borrowDate);
                 } catch (Exception e) {
-                    System.out.println("Skipping transaction for customer " + customerId + " and book " + bookId + " - " + e.getMessage());
+                    System.out.println("[Seeder Fallback] Skipping transaction for customer " + customerId + " and book " + bookId + " - " + e.getMessage());
                 }
-            });
-        });
+            }
+        }
+    }
 
+    private List<UUID> importBooksFromJson(){
+        List<UUID> bookIds = new ArrayList<>();
+        try {
+            Path path = new ClassPathResource("files/json/books.json").getFile().toPath();
+            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            String json = String.join("", lines);
+
+            ImportBookDto[] importBooks = gson.fromJson(json, ImportBookDto[].class);
+            if (importBooks != null) {
+                for (ImportBookDto ib : importBooks) {
+                    CreateNewBook create = mapper.map(ib, CreateNewBook.class);
+                    try {
+                        bookService.createNewBook(create);
+                        UUID bookId = bookRepository.findBooksByIsbn(create.getIsbn())
+                                .orElseThrow(() -> new IllegalStateException("Book not found"))
+                                .getBookId();
+                        bookIds.add(bookId);
+                        System.out.println("Seeded book: " + create.getTitle());
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Skipping book: " + create.getTitle() + " - " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to read books JSON via readAllLines: " + e.getMessage());
+        }
+        return bookIds;
+    }
+
+    private List<UUID> importCustomersFromJson() {
+        List<UUID> customerIds = new ArrayList<>();
+        try {
+            Path path = new ClassPathResource("files/json/customers.json").getFile().toPath();
+            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            String json = String.join("", lines);
+
+            ImportCustomerDto[] importCustomers = gson.fromJson(json, ImportCustomerDto[].class);
+            if (importCustomers != null) {
+                for (ImportCustomerDto ic : importCustomers) {
+                    CreateNewCustomer dto = mapper.map(ic, CreateNewCustomer.class);
+                    try {
+                        customerService.createNewCustomer(dto);
+                        UUID customerId = customerRepository.findByName(dto.getName())
+                                .orElseThrow(() -> new IllegalStateException("Customer not found"))
+                                .getCustomerId();
+                        customerIds.add(customerId);
+                        System.out.println("Seeded customer: " + dto.getName());
+                    } catch (Exception e) {
+                        System.out.println("Skipping customer: " + dto.getName() + " - " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to read customers JSON via readAllLines: " + e.getMessage());
+        }
+        return customerIds;
+    }
+
+    private boolean importTransactionsFromJson() {
+        try {
+            Path path = new ClassPathResource("files/json/transactions.json").getFile().toPath();
+            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            String json = String.join("", lines);
+
+            app.adapters.in.dto.importData.ImportTransactionDto[] txs = gson.fromJson(json, app.adapters.in.dto.importData.ImportTransactionDto[].class);
+            if (txs == null || txs.length == 0) {
+                System.out.println("No transactions to import.");
+                return true;
+            }
+
+            for (app.adapters.in.dto.importData.ImportTransactionDto t : txs) {
+                String name = t.getCustomerName();
+                String isbn = t.getBookIsbn();
+                String borrowStr = t.getBorrowDate();
+                String returnStr = t.getReturnDate();
+                try {
+                    if (name == null || isbn == null || borrowStr == null) {
+                        System.out.println("Skipping transaction due to missing required fields (customerName/bookIsbn/borrowDate).");
+                        continue;
+                    }
+                    UUID customerId = customerRepository.findByName(name)
+                            .orElseThrow(() -> new IllegalStateException("Customer not found: " + name))
+                            .getCustomerId();
+                    UUID bookId = bookRepository.findBooksByIsbn(isbn)
+                            .orElseThrow(() -> new IllegalStateException("Book not found by ISBN: " + isbn))
+                            .getBookId();
+
+                    LocalDate borrowDate = LocalDate.parse(borrowStr);
+                    transactionService.borrowBookWithDates(customerId, bookId, borrowDate);
+                    System.out.println("Imported borrow: book=" + isbn + ", customer=" + name + ", on=" + borrowDate);
+
+                    if (returnStr != null && !returnStr.isBlank()) {
+                        LocalDate returnDate = LocalDate.parse(returnStr);
+                        transactionService.returnBookWithDates(bookId, returnDate);
+                        System.out.println("Imported return: book=" + isbn + ", on=" + returnDate);
+                    }
+                } catch (Exception ex) {
+                    System.out.println("Skipping transaction (customer=" + name + ", isbn=" + isbn + ") - " + ex.getMessage());
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            System.out.println("Transactions JSON not found or failed to read: " + e.getMessage());
+            return false;
+        }
     }
 }

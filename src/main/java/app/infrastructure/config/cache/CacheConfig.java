@@ -1,4 +1,4 @@
-package app.infrastructure.config;
+package app.infrastructure.config.cache;
 
 import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;

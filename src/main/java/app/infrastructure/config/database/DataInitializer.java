@@ -1,4 +1,4 @@
-package app.infrastructure.config;
+package app.infrastructure.config.database;
 
 import app.adapters.out.H2.entity.UserEntity;
 import app.adapters.out.H2.repositories.UserRepository;

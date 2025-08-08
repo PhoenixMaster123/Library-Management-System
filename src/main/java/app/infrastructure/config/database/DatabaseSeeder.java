@@ -1,4 +1,4 @@
-package app.infrastructure.config;
+package app.infrastructure.config.database;
 
 import app.adapters.in.dto.CreateNewAuthor;
 import app.adapters.in.dto.CreateNewBook;

@@ -93,6 +93,8 @@ public class AuthorServiceIT {
         @Test
         void testGetPaginatedAuthors_Success() {
 
+            long baseCount = authorRepository.count();
+
             Author author1 = new Author(null, "Italo Calvino", "English");
             Author author2 = new Author(null, "Lev Tolstoy", "English");
             Author author3 = new Author(null, "Johann Wolfgang von Goethe", "English");
@@ -108,7 +110,7 @@ public class AuthorServiceIT {
 
 
             assertThat(authorsPage.getContent()).hasSize(2);
-            AssertionsForClassTypes.assertThat(authorsPage.getTotalElements()).isEqualTo(13);
+            AssertionsForClassTypes.assertThat(authorsPage.getTotalElements()).isEqualTo(baseCount + 3);
         }
 
         @Test

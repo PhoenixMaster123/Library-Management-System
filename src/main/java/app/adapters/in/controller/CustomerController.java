@@ -1,4 +1,4 @@
-package app.adapters.in;
+package app.adapters.in.controller;
 
 import app.adapters.in.dto.CreateNewCustomer;
 import app.domain.models.Customer;

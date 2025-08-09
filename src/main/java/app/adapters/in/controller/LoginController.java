@@ -1,8 +1,7 @@
-package app.adapters.in;
+package app.adapters.in.controller;
 
 import app.domain.models.AccountCredentials;
 import app.domain.services.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
